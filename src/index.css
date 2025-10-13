@@ -1,0 +1,90 @@
+@import './assets/styles/fonts.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global Typography Defaults */
+@layer base {
+  /* Body text uses Inter */
+  body {
+    @apply font-sans text-base leading-relaxed text-gray-800;
+  }
+  
+  /* Headings use Poppins */
+  h1 {
+    @apply font-heading text-5xl font-bold leading-tight tracking-tight;
+  }
+  
+  h2 {
+    @apply font-heading text-4xl font-bold leading-tight tracking-tight;
+  }
+  
+  h3 {
+    @apply font-heading text-3xl font-semibold leading-snug;
+  }
+  
+  h4 {
+    @apply font-heading text-2xl font-semibold leading-snug;
+  }
+  
+  h5 {
+    @apply font-heading text-xl font-semibold leading-normal;
+  }
+  
+  h6 {
+    @apply font-heading text-lg font-semibold leading-normal;
+  }
+  
+  /* Paragraphs */
+  p {
+    @apply font-sans text-base leading-relaxed;
+  }
+}
+
+/* Custom Typography Components */
+@layer components {
+  /* Hero Title */
+  .hero-title {
+    @apply font-heading text-6xl md:text-7xl font-extrabold leading-none tracking-tighter;
+  }
+  
+  /* Section Heading */
+  .section-heading {
+    @apply font-heading text-4xl md:text-5xl font-bold leading-tight tracking-tight;
+  }
+  
+  /* Card Title */
+  .card-title {
+    @apply font-heading text-xl font-semibold leading-snug;
+  }
+  
+  /* Body Large */
+  .body-lg {
+    @apply font-sans text-lg leading-relaxed;
+  }
+  
+  /* Body Regular */
+  .body {
+    @apply font-sans text-base leading-relaxed;
+  }
+  
+  /* Body Small */
+  .body-sm {
+    @apply font-sans text-sm leading-normal;
+  }
+  
+  /* Caption */
+  .caption {
+    @apply font-sans text-xs leading-normal text-gray-600;
+  }
+  
+  /* Button Text */
+  .btn-text {
+    @apply font-heading text-base font-semibold tracking-wide;
+  }
+  
+  /* Label */
+  .label {
+    @apply font-sans text-sm font-medium tracking-wide uppercase;
+  }
+}
