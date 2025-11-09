@@ -62,7 +62,7 @@ const Footer: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
-              <span className="font-display text-xl font-bold">TrailBlazer</span>
+              <span className="font-display text-xl font-bold">HikeSathi</span>
             </div>
             <p className="text-white/70 font-sans text-sm leading-relaxed mb-6">
               Connecting adventurers with nature's most breathtaking trails. Your next hiking adventure starts here.
@@ -115,7 +115,7 @@ const Footer: React.FC = () => {
                 <svg className="w-5 h-5 text-[#E76F51] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
-                <span>hello@trailblazer.com</span>
+                <span>trail@hikesathi.com</span>
               </div>
               <div className="flex items-start space-x-3">
                 <svg className="w-5 h-5 text-[#E76F51] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -158,11 +158,11 @@ const Footer: React.FC = () => {
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             {/* Copyright */}
             <div className="text-white/60 font-sans text-sm">
-              © {new Date().getFullYear()} TrailBlazer. All rights reserved.
+              © {new Date().getFullYear()} HikeSathi. All rights reserved.
             </div>
             
             {/* Additional Links */}
-            <div className="flex flex-wrap justify-center space-x-6 text-sm">
+            {/* <div className="flex flex-wrap justify-center space-x-6 text-sm">
               <a href="#" className="text-white/60 hover:text-white transition-colors duration-300">
                 Accessibility
               </a>
@@ -172,7 +172,7 @@ const Footer: React.FC = () => {
               <a href="#" className="text-white/60 hover:text-white transition-colors duration-300">
                 Cookie Policy
               </a>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

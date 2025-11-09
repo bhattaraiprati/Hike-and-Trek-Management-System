@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Navbar = () => {
+    const navigate = useNavigate();
+
 
 interface NavItem {
   id: string;
@@ -31,6 +34,9 @@ interface NavItem {
     setIsMobileMenuOpen(false);
     // Smooth scroll implementation would go here
   };
+  const handleLoginButton = () => {
+    navigate('/login');
+  }
 
   return (
     <nav
@@ -65,7 +71,7 @@ interface NavItem {
                   isScrolled ? 'text-[#2D5016]' : 'text-white'
                 }`}
               >
-                TrekEvent
+                HikeSathi
               </span>
             </div>
           </div>
@@ -91,7 +97,7 @@ interface NavItem {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            <button
+            <button onClick={handleLoginButton}
               className={`px-4 py-2 rounded-md text-sm font-medium border transition-colors duration-200 ${
                 isScrolled
                   ? 'border-[#2D5016] text-[#2D5016] hover:bg-[#2D5016] hover:text-white'
@@ -157,7 +163,7 @@ interface NavItem {
               </a>
             ))}
             <div className="pt-4 border-t border-gray-200 space-y-2">
-              <button className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-[#2D5016] hover:bg-gray-50 transition-colors duration-200">
+              <button onClick={handleLoginButton} className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-[#2D5016] hover:bg-gray-50 transition-colors duration-200">
                 Login
               </button>
               <button className="block w-full text-left px-3 py-2 rounded-md text-base font-medium bg-[#FF6B35] text-white hover:bg-[#E76F51] transition-colors duration-200">

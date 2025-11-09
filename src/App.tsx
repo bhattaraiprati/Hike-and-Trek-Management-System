@@ -1,25 +1,20 @@
 
 import './App.css'
-import AIChatbotShowcase from './components/landing/AIChatbotShowcase'
-import FeaturesSection from './components/landing/FeaturesSection'
-import Footer from './components/landing/Footer'
-import HeroSection from './components/landing/HeroSection'
-import HowItWorksSection from './components/landing/HowItWorksSection'
-import Navbar from './components/landing/Navbar'
+import AppRoutes from './routes/AppRoutes'
+
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 function App() {
   
+const queryClient = new QueryClient();
 
   return (
     <>
-      <Navbar/>
-      <HeroSection/>
-      <FeaturesSection/>
-      <HowItWorksSection/>
-      <AIChatbotShowcase/>
-      <Footer/>
+    <QueryClientProvider client={queryClient}>
+      <AppRoutes/>
+    </QueryClientProvider>
     </>
   )
 }
 
-export default App
+export default App;
