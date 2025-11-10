@@ -37,6 +37,9 @@ interface NavItem {
   const handleLoginButton = () => {
     navigate('/login');
   }
+  const handleSignUpButton = () => {
+    navigate('/signup');
+  }
 
   return (
     <nav
@@ -106,10 +109,10 @@ interface NavItem {
             >
               Login
             </button>
-            <button
+            <button onClick={handleSignUpButton}
               className="px-4 py-2 rounded-md text-sm font-medium bg-[#FF6B35] text-white hover:bg-[#E76F51] transition-colors duration-200 shadow-lg"
             >
-              Sign Up
+              Sign Up as Organizer
             </button>
           </div>
 

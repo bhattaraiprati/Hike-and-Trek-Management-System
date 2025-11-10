@@ -11,9 +11,9 @@ const LandingPage = () => {
     <Navbar/>
     <HeroSection/>
     <FeaturesSection/>
-      <HowItWorksSection/>
-      <AIChatbotShowcase/>
-      <Footer/>
+    <HowItWorksSection/>
+    <AIChatbotShowcase/>
+    <Footer/>
     </>
   )
 }
