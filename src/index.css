@@ -1,7 +1,14 @@
-@import './assets/styles/fonts.css';
+/* 1. Import fonts FIRST — use Vite-resolvable path */
+@import url('./assets/styles/fonts.css');
+
+/* 2. Import Flowbite */
+/* @import 'flowbite'; */
+
+/* 3. Tailwind layers */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 
 /* Global Typography Defaults */
 @layer base {
