@@ -1,5 +1,4 @@
-
-import  { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { 
   Search, 
   Bell, 
@@ -9,11 +8,16 @@ import {
   Calendar,
   Settings,
   LogOut,
-  Mountain,
+  Menu
 } from 'lucide-react';
 
-const Header = () => {
- const [isSearchFocused, setIsSearchFocused] = useState(false);
+interface HeaderProps {
+  onMenuToggle?: () => void;
+  isSidebarCollapsed?: boolean;
+}
+
+const Header: React.FC<HeaderProps> = ({ onMenuToggle, isSidebarCollapsed }) => {
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -69,22 +73,22 @@ const Header = () => {
   const unreadCount = notifications.filter(n => n.unread).length;
 
   return (
-    <nav className="bg-white/95 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="bg-white border-b border-gray-200 sticky top-0 z-30">
+      <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           
-          {/* Left Section - Logo */}
-          <div className="flex items-center space-x-8">
-            {/* Logo */}
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-[#1B4332] to-[#2C5F8D] rounded-lg flex items-center justify-center">
-                <Mountain className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-xl font-bold text-gray-900">TrailBlazer</span>
-            </div>
+          {/* Left Section - Mobile Menu & Search */}
+          <div className="flex items-center space-x-4">
+            {/* Mobile Menu Button */}
+            <button 
+              onClick={onMenuToggle}
+              className="lg:hidden p-2 text-gray-500 hover:text-gray-700 transition-colors duration-300 rounded-lg hover:bg-gray-100"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
 
             {/* Quick Search Bar */}
-            <div ref={searchRef} className="relative hidden md:block w-80">
+            <div ref={searchRef} className="relative">
               <div className="relative">
                 <input
                   type="text"
@@ -92,7 +96,7 @@ const Header = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setIsSearchFocused(true)}
                   placeholder="Search trails, events, or people..."
-                  className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#1B4332] focus:border-transparent transition-all duration-300 text-sm placeholder-gray-500"
+                  className="w-full md:w-80 pl-10 pr-4 py-2 bg-gray-50 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#1B4332] focus:border-transparent transition-all duration-300 text-sm placeholder-gray-500"
                 />
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
                   <Search className="w-4 h-4 text-gray-400" />
@@ -123,11 +127,6 @@ const Header = () => {
           {/* Right Section - Navigation Icons */}
           <div className="flex items-center space-x-4">
             
-            {/* Mobile Search Button */}
-            <button className="md:hidden p-2 text-gray-500 hover:text-gray-700 transition-colors duration-300">
-              <Search className="w-5 h-5" />
-            </button>
-
             {/* Notifications Bell */}
             <div ref={notificationsRef} className="relative">
               <button
@@ -214,7 +213,6 @@ const Header = () => {
                   </div>
                   
                   <div className="p-2">
-                                        
                     <a href="/profile" className="flex items-center space-x-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200">
                       <User className="w-4 h-4 text-gray-400" />
                       <span>Profile</span>
@@ -242,4 +240,4 @@ const Header = () => {
   );
 };
 
-export default Header
+export default Header;
