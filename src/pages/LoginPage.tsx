@@ -1,6 +1,7 @@
-// LoginPage.tsx
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/authContext";
 import {
   loginForm,
   registerForm,
@@ -15,8 +16,22 @@ import {
   X,
 } from "lucide-react";
 import { urlLink } from "../api/axiosConfig";
+import { jwtDecode } from "jwt-decode";
+import { useRedirectIfAuthenticated } from "../hooks/useRedirectIfAuthenticated";
+
+interface DecodedToken {
+  sub?: string;
+  email?: string;
+  name: string;
+  role: string;
+  id: string;
+}
 
 const LoginPage = () => {
+  useRedirectIfAuthenticated();
+
+  const navigate = useNavigate();
+  const { login } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [showOTPPopup, setShowOTPPopup] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -29,12 +44,45 @@ const LoginPage = () => {
   });
   const [rememberMe, setRememberMe] = useState(false);
 
+  // Helper function to redirect based on role
+  const redirectBasedOnRole = (token: string) => {
+    // Decode token to get user role
+    try {
+      const payload = jwtDecode<DecodedToken>(token);
+      const userRole = payload.role;
+
+      console.log("Decoded user role:", userRole);
+
+      // Redirect based on role
+      switch (userRole) {
+        case "ORGANIZER":
+          navigate("/dashboard-organizer");
+          break;
+        case "HIKER":
+          navigate("/dashboard");
+          break;
+        case "ADMIN":
+          navigate("/admin-dashboard");
+          break;
+        default:
+          navigate("/");
+      }
+    } catch (error) {
+      console.error("Error decoding token:", error);
+      navigate("/");
+    }
+  };
+
   const loginMutation = useMutation({
     mutationFn: loginForm,
     onSuccess: (data) => {
-      const storage = rememberMe ? localStorage : sessionStorage;
-      storage.setItem("token", data.token);
-      // navigate("/dashboard");
+      localStorage.setItem("token", data.token);
+      console.log("Token stored in localStorage", data.token);
+      // Use auth context login
+      login(data.token);
+      
+      // Redirect based on role
+      redirectBasedOnRole(data.token);
     },
   });
 
@@ -90,13 +138,11 @@ const LoginPage = () => {
       return;
     }
     setShowConfirmModal(true);
-
   };
 
   const sentOTP = () => {
     confirmRegister();
     setShowConfirmModal(false);
-    // setShowOTPPopup(true);
   }
 
   const confirmRegister = () => {
@@ -107,30 +153,29 @@ const LoginPage = () => {
     });
   };
 
- const handleVerifyOTP = (otp: string) => {
-  verifyOTPMutation.mutate({ 
-    email: pendingVerificationEmail, 
-    otp: otp  // Pass as string, not number
-  });
-};
+  const handleVerifyOTP = (otp: string) => {
+    verifyOTPMutation.mutate({ 
+      email: pendingVerificationEmail, 
+      otp: otp
+    });
+  };
 
-const handleResendOTP = () => {
-  resendOTPMutation.mutate({ email: pendingVerificationEmail });
-};
+  const handleResendOTP = () => {
+    resendOTPMutation.mutate({ email: pendingVerificationEmail });
+  };
 
   const closeOTPPopup = () => {
-  setShowOTPPopup(false);
-  setShowConfirmModal(false); // Add this line
-  setPendingVerificationEmail(""); // Clear the pending email
-  setFormData(p => ({ ...p, email: "", password: "", name: "", confirmPassword: "" }));
-};
+    setShowOTPPopup(false);
+    setShowConfirmModal(false);
+    setPendingVerificationEmail("");
+    setFormData(p => ({ ...p, email: "", password: "", name: "", confirmPassword: "" }));
+  };
 
   const handleSocialLogin = (provider: string) => {
-  if (provider === "google") {
-    // Use window.location.href for full page navigation (not AJAX)
-    window.location.href = `${urlLink}/oauth2/authorization/google`;
-  }
-};
+    if (provider === "google") {
+      window.location.href = `${urlLink}/oauth2/authorization/google`;
+    }
+  };
 
   /* -------------------- Render -------------------- */
   return (
@@ -346,7 +391,6 @@ const handleResendOTP = () => {
                 disabled={currentMutation.isPending}
                 className="flex items-center justify-center space-x-2 py-3 px-4 border border-gray-300 rounded-2xl hover:bg-gray-50 transition-all group disabled:opacity-50"
               >
-                {/* Google SVG → Lucide icon (you can keep the SVG if you prefer) */}
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path
                     fill="#4285F4"
@@ -428,7 +472,7 @@ const handleResendOTP = () => {
         </div>
       </div>
 
-      {/* ---------- OTP Confirmation Modal (new) ---------- */}
+      {/* ---------- OTP Confirmation Modal ---------- */}
       {showConfirmModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6">

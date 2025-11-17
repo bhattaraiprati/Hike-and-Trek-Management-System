@@ -4,8 +4,10 @@ import Footer from "../components/landing/Footer"
 import HeroSection from "../components/landing/HeroSection"
 import HowItWorksSection from "../components/landing/HowItWorksSection"
 import Navbar from "../components/landing/Navbar"
+import { useRedirectIfAuthenticated } from "../hooks/useRedirectIfAuthenticated"
 
 const LandingPage = () => {
+  useRedirectIfAuthenticated();
   return (
     <>
     <Navbar/>

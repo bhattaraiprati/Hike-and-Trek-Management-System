@@ -12,6 +12,18 @@ interface RegisterForm {
   password: string;
 }
 
+interface OrganizerRegistrationDTO {
+  fullName: string;
+  organizationName: string;
+  email: string;
+  password: string;
+  phone: string;
+  address: string;
+  documentUrl: string;
+  about: string;
+}
+
+
 interface OTPVerification {
   email: string;
   otp: string;
@@ -28,6 +40,11 @@ export const loginForm = async (data: LoginData) => {
 
 export const registerForm = async (registerData: RegisterForm) => {
   const response = await axios.post(`${urlLink}/api/auth/register`, registerData);
+  return response.data;
+};
+
+export const registerOrganizer = async (data: OrganizerRegistrationDTO) => {
+  const response = await axios.post(`${urlLink}/api/auth/organizer_register`, data);
   return response.data;
 };
 

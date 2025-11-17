@@ -1,19 +1,93 @@
-// components/Registration/OrganizerRegistration.tsx
 import React, { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
+
+import OTPVerificationPopup from '../../components/auth/OTPVerificationPopup';
+import { Loader2, Mail, Upload, X } from 'lucide-react';
+import { registerOrganizer, resendOTP, verifyOTP } from '../../api/services/authApi';
+
+interface OrganizerFormData {
+  fullName: string;
+  organizationName: string;
+  email: string;
+  password: string;
+  phone: string;
+  address: string;
+  documentUrl: string;
+  about: string;
+}
 
 const OrganizerRegistration: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState({
+   const [isUploading, setIsUploading] = useState(false);
+  const [formData, setFormData] = useState<OrganizerFormData>({
     fullName: '',
     organizationName: '',
     email: '',
     password: '',
-    phoneNumber: '',
+    phone: '',
     address: '',
-    description: ''
+    documentUrl: '',
+    about: ''
   });
   const [documentFile, setDocumentFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  
+  // OTP Flow States
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showOTPModal, setShowOTPModal] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+
+  // API Mutations
+  const registerMutation = useMutation<unknown, any, OrganizerFormData>({
+    mutationFn: registerOrganizer,
+    onSuccess: () => {
+      setShowConfirmModal(false);
+      setShowOTPModal(true);
+    },
+    onError: (error: any) => {
+      setShowConfirmModal(false);
+      if (error.response?.status === 409) {
+        setErrors({ email: 'User with this email already exists' });
+      } else {
+        setErrors({ submit: 'Registration failed. Please try again.' });
+      }
+    }
+  });
+
+  const verifyOTPMutation = useMutation<unknown, any, { email: string; otp: string }>({
+    mutationFn: verifyOTP,
+    onSuccess: () => {
+      setRegistrationSuccess(true);
+      setShowOTPModal(false);
+      // Show success message
+      alert('Registration completed successfully! Your account is pending approval.');
+    },
+    onError: (error: any) => {
+      console.log(error)
+      // Error will be handled in OTPVerificationPopup
+    }
+  });
+
+  const resendOTPMutation = useMutation<unknown, any, { email: string }>({
+    mutationFn: resendOTP,
+    onError: (error: any) => {
+      console.log(error)
+      // Error will be handled in OTPVerificationPopup
+    }
+  });
+
+  const removeDocument = () => {
+    setDocumentFile(null);
+    setFormData(prev => ({
+      ...prev,
+      document_url: ''
+    }));
+    // Clear the file input
+    const fileInput = document.getElementById('document-upload') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -27,10 +101,74 @@ const OrganizerRegistration: React.FC = () => {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file type
+      const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/jpg', 'image/png'];
+      if (!validTypes.includes(file.type)) {
+        setErrors(prev => ({ ...prev, document: 'Please upload a valid file (PDF, DOC, DOCX, JPG, PNG)' }));
+        return;
+      }
+
+      // Validate file size (10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        setErrors(prev => ({ ...prev, document: 'File size must be less than 10MB' }));
+        return;
+      }
+
       setDocumentFile(file);
+      setIsUploading(true);
+      
+      try {
+        // Auto-upload file and set URL
+        const documentUrl = await handleImageUpload(file, 'document');
+        if (documentUrl) {
+          setFormData(prev => ({
+            ...prev,
+            documentUrl: documentUrl
+          }));
+          // Clear any previous document errors
+          setErrors(prev => ({ ...prev, document: '' }));
+        }
+      } catch (error) {
+        setErrors(prev => ({ ...prev, document: 'Failed to upload document' }));
+      } finally {
+        setIsUploading(false);
+      }
+    }
+  };
+
+
+  const handleImageUpload = async (file: File, type: string) => {
+    const data = new FormData();
+    data.append("file", file);
+    data.append("upload_preset", "Trek Sathi");
+    data.append("cloud_name", "dtwunctra");
+
+    try {
+      const response = await fetch(
+        "https://api.cloudinary.com/v1_1/dtwunctra/image/upload",
+        {
+          method: "POST",
+          body: data,
+        }
+      );
+      const result = await response.json();
+
+      // Update the corresponding image path in the form state
+      if (type === "document") {
+        setFormData((prev) => ({
+          ...prev,
+          document_url: result.url,
+        }));
+      }
+
+      return result.url;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      setErrors(prev => ({ ...prev, document: 'Failed to upload document' }));
+      return null;
     }
   };
 
@@ -51,11 +189,11 @@ const OrganizerRegistration: React.FC = () => {
   const validateStep2 = () => {
     const newErrors: Record<string, string> = {};
     
-    if (!formData.phoneNumber.trim()) newErrors.phoneNumber = 'Phone number is required';
+    if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
     if (!formData.address.trim()) newErrors.address = 'Address is required';
-    if (!documentFile) newErrors.document = 'Verification document is required';
-    if (!formData.description.trim()) newErrors.description = 'Description is required';
-    else if (formData.description.length > 250) newErrors.description = 'Description must be less than 250 characters';
+    if (!formData.documentUrl) newErrors.document = 'Verification document is required';
+    if (!formData.about.trim()) newErrors.about = 'Description is required';
+    else if (formData.about.length > 250) newErrors.about = 'Description must be less than 250 characters';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -70,16 +208,58 @@ const OrganizerRegistration: React.FC = () => {
       }
     } else {
       if (validateStep2()) {
-        console.log('Registration submitted:', { ...formData, documentFile });
-        // Show success message
-        alert('Registration submitted successfully! We will review your application shortly.');
+        // Show confirmation modal instead of directly submitting
+        setShowConfirmModal(true);
       }
     }
+  };
+
+  const sentOTP = () => {
+    // Submit registration data which will trigger OTP sending
+    registerMutation.mutate(formData);
+  };
+
+  const handleVerifyOTP = (otp: string) => {
+    verifyOTPMutation.mutate({
+      email: formData.email,
+      otp: otp
+    });
+  };
+
+  const handleResendOTP = () => {
+    resendOTPMutation.mutate({
+      email: formData.email
+    });
   };
 
   const handleBack = () => {
     setCurrentStep(1);
   };
+
+  if (registrationSuccess) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 flex items-center justify-center p-4">
+        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl p-8 max-w-md w-full text-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Registration Successful!</h2>
+          <p className="text-gray-600 mb-6">
+            Your organizer account has been created and is pending approval. 
+            We'll notify you once your account is verified.
+          </p>
+          <button
+            onClick={() => window.location.href = '/login'}
+            className="w-full py-3 bg-gradient-to-r from-green-600 to-emerald-700 text-white rounded-2xl font-medium hover:shadow-lg transform hover:scale-105 transition-all duration-300"
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 flex items-center justify-center p-4">
@@ -229,17 +409,17 @@ const OrganizerRegistration: React.FC = () => {
                       </label>
                       <input
                         type="tel"
-                        name="phoneNumber"
-                        value={formData.phoneNumber}
+                        name="phone"
+                        value={formData.phone}
                         onChange={handleInputChange}
                         className={`w-full px-4 py-3 border rounded-2xl focus:outline-none focus:ring-2 transition-all duration-300 ${
-                          errors.phoneNumber 
+                          errors.phone 
                             ? 'border-red-300 focus:ring-red-200' 
                             : 'border-gray-300 focus:border-green-500 focus:ring-green-200'
                         }`}
-                        placeholder="+1 (555) 123-4567"
+                        placeholder="+977 "
                       />
-                      {errors.phoneNumber && <p className="text-red-500 text-sm mt-1">{errors.phoneNumber}</p>}
+                      {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
                     </div>
 
                     <div>
@@ -266,38 +446,91 @@ const OrganizerRegistration: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                        <svg className="w-4 h-4 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        Upload Verification Document
-                      </label>
-                      <div 
-                        className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all duration-300 ${
-                          errors.document 
-                            ? 'border-red-300 bg-red-50' 
-                            : 'border-gray-300 hover:border-green-500 hover:bg-green-50'
-                        }`}
-                      >
-                        <input
-                          type="file"
-                          onChange={handleFileChange}
-                          className="hidden"
-                          id="document-upload"
-                          accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                        />
-                        <label htmlFor="document-upload" className="cursor-pointer">
-                          <svg className="w-8 h-8 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                          </svg>
-                          <p className="text-sm text-gray-600">
-                            {documentFile ? documentFile.name : 'Click to upload or drag and drop'}
-                          </p>
-                          <p className="text-xs text-gray-500 mt-1">PDF, DOC, JPG, PNG (Max. 10MB)</p>
-                        </label>
+              <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                <svg className="w-4 h-4 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+                Upload Verification Document
+              </label>
+              
+              {!documentFile ? (
+                <div 
+                  className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all duration-300 ${
+                    errors.document 
+                      ? 'border-red-300 bg-red-50' 
+                      : 'border-gray-300 hover:border-green-500 hover:bg-green-50'
+                  }`}
+                >
+                  <input
+                    type="file"
+                    onChange={handleFileChange}
+                    className="hidden"
+                    id="document-upload"
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                    disabled={isUploading}
+                  />
+                  <label htmlFor="document-upload" className="cursor-pointer block">
+                    {isUploading ? (
+                      <div className="flex flex-col items-center">
+                        <Loader2 className="w-8 h-8 text-green-600 animate-spin mb-2" />
+                        <p className="text-sm text-gray-600">Uploading document...</p>
                       </div>
-                      {errors.document && <p className="text-red-500 text-sm mt-1">{errors.document}</p>}
+                    ) : (
+                      <>
+                        <Upload className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+                        <p className="text-sm text-gray-600">
+                          Click to upload verification document
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">PDF, DOC, DOCX, JPG, PNG (Max. 10MB)</p>
+                      </>
+                    )}
+                  </label>
+                </div>
+              ) : (
+                <div className="border-2 border-green-200 bg-green-50 rounded-2xl p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                        <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2h-5l-5 5v-5z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 truncate max-w-xs">
+                          {documentFile.name}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {(documentFile.size / (1024 * 1024)).toFixed(2)} MB
+                        </p>
+                      </div>
                     </div>
+                    <div className="flex space-x-2">
+                      <a
+                        href={formData.documentUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                      >
+                        View
+                      </a>
+                      <button
+                        type="button"
+                        onClick={removeDocument}
+                        className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                  {formData.documentUrl && (
+                    <p className="text-xs text-green-600 mt-2">
+                      ✓ Document uploaded successfully
+                    </p>
+                  )}
+                </div>
+              )}
+              {errors.document && <p className="text-red-500 text-sm mt-1">{errors.document}</p>}
+            </div>
 
                     <div>
                       <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
@@ -307,22 +540,29 @@ const OrganizerRegistration: React.FC = () => {
                         Short Description / About Organization
                       </label>
                       <textarea
-                        name="description"
-                        value={formData.description}
+                        name="about"
+                        value={formData.about}
                         onChange={handleInputChange}
                         rows={4}
                         className={`w-full px-4 py-3 border rounded-2xl focus:outline-none focus:ring-2 transition-all duration-300 resize-none ${
-                          errors.description 
+                          errors.about 
                             ? 'border-red-300 focus:ring-red-200' 
                             : 'border-gray-300 focus:border-green-500 focus:ring-green-200'
                         }`}
                         placeholder="Tell us about your organization and experience with outdoor events..."
                       />
                       <div className="flex justify-between text-sm text-gray-500 mt-1">
-                        {errors.description && <span className="text-red-500">{errors.description}</span>}
-                        <span>{formData.description.length}/250 characters</span>
+                        {errors.about && <span className="text-red-500">{errors.about}</span>}
+                        <span>{formData.about.length}/250 characters</span>
                       </div>
                     </div>
+                  </div>
+                )}
+
+                {/* Submit Error */}
+                {errors.submit && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-xl">
+                    <p className="text-red-600 text-sm">{errors.submit}</p>
                   </div>
                 )}
 
@@ -350,7 +590,7 @@ const OrganizerRegistration: React.FC = () => {
               <div className="text-center mt-8">
                 <p className="text-gray-600">
                   Already have an account?{' '}
-                  <a href="#" className="text-green-600 font-medium hover:text-green-700 transition-colors duration-300">
+                  <a href="/login" className="text-green-600 font-medium hover:text-green-700 transition-colors duration-300">
                     Login here
                   </a>
                 </p>
@@ -383,6 +623,71 @@ const OrganizerRegistration: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-[#1B4332] to-[#2C5F8D] rounded-2xl flex items-center justify-center">
+                  <Mail className="w-5 h-5 text-white" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900">Confirm Email</h2>
+              </div>
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-2xl transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            <p className="text-gray-600 mb-2">
+              We will send a 6-digit OTP to:
+            </p>
+            <p className="text-[#1B4332] font-medium text-lg mb-6">
+              {formData.email}
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="flex-1 py-3 border border-gray-300 rounded-2xl font-medium text-gray-700 hover:bg-gray-50 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={sentOTP}
+                disabled={registerMutation.status === 'pending'}
+                className="flex-1 py-3 bg-gradient-to-r from-[#1B4332] to-[#2C5F8D] text-white rounded-2xl font-semibold hover:shadow-lg transition-all disabled:opacity-50"
+              >
+                {registerMutation.status === 'pending' ? (
+                  <span className="flex items-center justify-center">
+                    <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                    Sending...
+                  </span>
+                ) : (
+                  "Send OTP"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* OTP Verification Modal */}
+      <OTPVerificationPopup
+        isOpen={showOTPModal}
+        onClose={() => setShowOTPModal(false)}
+        email={formData.email}
+        onVerifyOTP={handleVerifyOTP}
+        onResendOTP={handleResendOTP}
+        isVerifying={verifyOTPMutation.status === 'pending'}
+        isResending={resendOTPMutation.status === 'pending'}
+        resendSuccess={resendOTPMutation.status === 'success'}
+        error={verifyOTPMutation.error?.response?.data?.message || resendOTPMutation.error?.response?.data?.message}
+      />
     </div>
   );
 };

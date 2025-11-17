@@ -1,15 +1,15 @@
-import { useState } from "react";
-import Header from "../../components/hiker/layout/Header"
-import Sidebar from "../../components/hiker/layout/Sidebar"
+import { useState } from 'react'
+import OrganizerSidebar from '../../components/organizer/layout/OrganizerSidebar';
+import OrganizerHeader from '../../components/organizer/layout/OrganizerHeader';
 
-const DashboardPage = () => {
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+export const OrganizerDashboard = () => {
+   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
       <div className="flex">
-        <Sidebar 
+        <OrganizerSidebar 
           isMobileOpen={isMobileSidebarOpen}
           onMobileClose={() => setIsMobileSidebarOpen(false)}
           isCollapsed={isSidebarCollapsed}
@@ -20,7 +20,7 @@ const DashboardPage = () => {
         <div className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${
           isSidebarCollapsed ? 'lg:ml-0' : 'lg:ml-0'
         }`}>
-          <Header 
+          <OrganizerHeader
             onMenuToggle={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
             isSidebarCollapsed={isSidebarCollapsed}
           />
@@ -37,4 +37,3 @@ const DashboardPage = () => {
   )
 }
 
-export default DashboardPage
