@@ -1,0 +1,14 @@
+/* src/index.css or src/globals.css */
+:root {
+  /* Primary Colors (Forest Greens) */
+  --forest-dark: #1B4332;
+  --forest-medium: #2D5016;
+
+  /* Secondary Colors (Mountain Blues) */
+  --mountain-dark: #1E3A5F;
+  --mountain-medium: #2C5F8D;
+
+  /* Accent Colors (Sunrise Oranges) */
+  --sunrise-main: #E76F51;
+  --sunrise-bright: #FF6B35;
+}

@@ -1,3 +1,5 @@
+// OrganizerSidebar.tsx - Fixed active state logic
+
 import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard,
@@ -8,8 +10,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Map,
-  Mountain
+  Mountain,
+  Users,
 } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 
 interface SidebarProps {
   isMobileOpen: boolean;
@@ -24,8 +28,8 @@ const OrganizerSidebar: React.FC<SidebarProps> = ({
   isCollapsed, 
   onToggleCollapse 
 }) => {
-  const [activeItem, setActiveItem] = useState('dashboard');
   const [isMobile, setIsMobile] = useState(false);
+  const location = useLocation();
 
   // Check if mobile on mount and resize
   useEffect(() => {
@@ -33,7 +37,6 @@ const OrganizerSidebar: React.FC<SidebarProps> = ({
       const mobile = window.innerWidth < 1024;
       setIsMobile(mobile);
       if (!mobile && isMobileOpen) {
-        // Auto-close mobile sidebar when resizing to desktop
         onMobileClose();
       }
     };
@@ -44,13 +47,24 @@ const OrganizerSidebar: React.FC<SidebarProps> = ({
   }, [isMobileOpen, onMobileClose]);
 
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'events', label: 'Events', icon: Calendar },
-    { id: 'explore', label: 'Explore', icon: Map },
-    { id: 'messages', label: 'Messages', icon: MessageSquare },
-    { id: 'profile', label: 'Profile', icon: User },
-    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'dashboard',      label: 'Dashboard',        icon: LayoutDashboard,   to: '/dashboard' },
+    { id: 'events',         label: 'My Events',        icon: Calendar,          to: '/dashboard/events' },
+    { id: 'create-event',   label: 'Create New Event', icon: Map,               to: '/dashboard/register' },
+    { id: 'participants',   label: 'Participants',     icon: Users,             to: '/dashboard/participants' },
+    { id: 'messages',       label: 'Messages',         icon: MessageSquare,     to: '/dashboard/messages' },
+    { id: 'profile',        label: 'Profile / KYC',    icon: User,              to: '/dashboard/profile' },
+    { id: 'settings',       label: 'Settings',         icon: Settings,          to: '/dashboard/settings' },
   ];
+
+  // Function to check if a menu item is active
+  const isMenuItemActive = (itemPath: string) => {
+    // For exact dashboard match
+    if (itemPath === '/dashboard') {
+      return location.pathname === '/dashboard';
+    }
+    // For other routes, check if current path starts with item path
+    return location.pathname.startsWith(itemPath);
+  };
 
   // Close sidebar on mobile when clicking outside
   useEffect(() => {
@@ -69,12 +83,39 @@ const OrganizerSidebar: React.FC<SidebarProps> = ({
     };
   }, [isMobileOpen, isMobile, onMobileClose]);
 
-  const handleItemClick = (itemId: string) => {
-    setActiveItem(itemId);
-    // Close mobile sidebar when item is clicked on mobile
-    if (isMobile) {
-      onMobileClose();
-    }
+  // Render menu item
+  const renderMenuItem = (item: typeof menuItems[0]) => {
+    const Icon = item.icon;
+    const isActive = isMenuItemActive(item.to);
+
+    return (
+      <Link
+        key={item.id}
+        to={item.to}
+        onClick={() => isMobile && onMobileClose()}
+        className={`
+          w-full flex items-center rounded-xl p-3 transition-all duration-200 group relative
+          ${isActive
+            ? 'bg-[#1B4332]/10 text-[#1B4332] border-l-4 border-[#1B4332]'
+            : 'text-gray-700 hover:bg-gray-100 hover:text-[#1B4332]'
+          }
+          ${isCollapsed ? 'justify-center' : 'justify-start space-x-3'}
+        `}
+      >
+        <Icon className={`w-5 h-5 ${isActive ? 'text-[#1B4332]' : 'text-[#1E3A5F]'}`} />
+        {!isCollapsed && <span className="font-medium">{item.label}</span>}
+        
+        {isCollapsed && isActive && (
+          <div className="absolute -right-1 top-1/2 transform -translate-y-1/2 w-1.5 h-6 bg-[#FF6B35] rounded-l-full" />
+        )}
+        
+        {isCollapsed && (
+          <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 whitespace-nowrap">
+            {item.label}
+          </div>
+        )}
+      </Link>
+    );
   };
 
   // Mobile sidebar
@@ -120,31 +161,7 @@ const OrganizerSidebar: React.FC<SidebarProps> = ({
             {/* Navigation Menu */}
             <nav className="flex-1 p-4">
               <div className="space-y-2">
-                {menuItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = activeItem === item.id;
-                  
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => handleItemClick(item.id)}
-                      className={`
-                        w-full flex items-center space-x-3 rounded-xl p-3
-                        transition-all duration-200 group
-                        ${isActive 
-                          ? 'bg-[#1B4332] text-white shadow-md' 
-                          : 'text-gray-700 hover:bg-gray-100 hover:text-[#1B4332]'
-                        }
-                      `}
-                    >
-                      <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-[#1E3A5F]'}`} />
-                      <span className="font-medium">{item.label}</span>
-                      {isActive && (
-                        <div className="ml-auto w-2 h-2 bg-[#FF6B35] rounded-full"></div>
-                      )}
-                    </button>
-                  );
-                })}
+                {menuItems.map(renderMenuItem)}
               </div>
             </nav>
 
@@ -196,7 +213,7 @@ const OrganizerSidebar: React.FC<SidebarProps> = ({
             </div>
           )}
 
-          {/* Collapse Toggle Button - Only show on desktop */}
+          {/* Collapse Toggle Button */}
           <button
             onClick={onToggleCollapse}
             className="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-100 transition-colors duration-200"
@@ -212,48 +229,11 @@ const OrganizerSidebar: React.FC<SidebarProps> = ({
         {/* Navigation Menu */}
         <nav className="flex-1 p-4">
           <div className="space-y-2">
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeItem === item.id;
-              
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => handleItemClick(item.id)}
-                  className={`
-                    w-full flex items-center rounded-xl p-3
-                    transition-all duration-200 group relative
-                    ${isActive 
-                      ? 'bg-[#1B4332]/10 text-[#1B4332] border-l-4 border-[#1B4332]' 
-                      : 'text-gray-700 hover:bg-gray-100 hover:text-[#1B4332]'
-                    }
-                    ${isCollapsed ? 'justify-center' : 'justify-start space-x-3'}
-                  `}
-                >
-                  <Icon className={`w-5 h-5 ${isActive ? 'text-[#1B4332]' : 'text-[#1E3A5F]'}`} />
-                  
-                  {!isCollapsed && (
-                    <span className="font-medium">{item.label}</span>
-                  )}
-
-                  {/* Active indicator dot for collapsed state */}
-                  {isCollapsed && isActive && (
-                    <div className="absolute -right-1 top-1/2 transform -translate-y-1/2 w-1.5 h-6 bg-[#FF6B35] rounded-l-full"></div>
-                  )}
-
-                  {/* Tooltip for collapsed state */}
-                  {isCollapsed && (
-                    <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 whitespace-nowrap">
-                      {item.label}
-                    </div>
-                  )}
-                </button>
-              );
-            })}
+            {menuItems.map(renderMenuItem)}
           </div>
         </nav>
 
-        {/* User Info Section - Only show when expanded */}
+        {/* User Info Section */}
         {!isCollapsed && (
           <div className="p-4 border-t border-gray-100">
             <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">

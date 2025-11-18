@@ -24,8 +24,8 @@ module.exports = {
       colors: {
         // Nature-inspired color palette
         primary: {
-          DEFAULT: '#2D5016',
-          dark: '#1B4332'
+          DEFAULT: '  #1B4332',
+          light: '#2D5016'
         },
         secondary: {
           DEFAULT: '#1E3A5F',
