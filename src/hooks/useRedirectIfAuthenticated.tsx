@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/authContext";
 import { getRoleBasedRoute } from "../utils/getRoleBasedRoute";
+import { useAuth } from "../context/AuthContext";
 
 export const useRedirectIfAuthenticated = () => {
   const { user } = useAuth();

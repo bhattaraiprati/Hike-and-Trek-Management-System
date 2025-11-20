@@ -34,27 +34,27 @@ interface ResendOTP {
 }
 
 export const loginForm = async (data: LoginData) => {
-  const response = await axios.post(`${urlLink}/api/auth/login`, data);
+  const response = await axios.post(`${urlLink}/auth/login`, data);
   return response.data;
 };
 
 export const registerForm = async (registerData: RegisterForm) => {
-  const response = await axios.post(`${urlLink}/api/auth/register`, registerData);
+  const response = await axios.post(`${urlLink}/auth/register`, registerData);
   return response.data;
 };
 
 export const registerOrganizer = async (data: OrganizerRegistrationDTO) => {
-  const response = await axios.post(`${urlLink}/api/auth/organizer_register`, data);
+  const response = await axios.post(`${urlLink}/auth/organizer_register`, data);
   return response.data;
 };
 
 export const verifyOTP = async (data: OTPVerification) => {
-  const response = await axios.post(`${urlLink}/api/auth/verify-otp`, data);
+  const response = await axios.post(`${urlLink}/auth/verify-otp`, data);
   return response.data;
 };
 
 export const resendOTP = async (data: ResendOTP) => {
-  const response = await axios.post(`${urlLink}/api/auth/resend-otp`, null, {
+  const response = await axios.post(`${urlLink}/auth/resend-otp`, null, {
     params: { email: data.email }
   });
   return response.data;

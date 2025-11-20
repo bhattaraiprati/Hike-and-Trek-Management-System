@@ -1,7 +1,7 @@
 export const getRoleBasedRoute = (role: string): string => {
   const roleRoutes: Record<string, string> = {
-    ORGANIZER: "/dashboard-organizer",
-    HIKER: "/dashboard",
+    ORGANIZER: "/dashboard",
+    HIKER: "/hiker-dashboard",
     ADMIN: "/admin-dashboard",
   };
 

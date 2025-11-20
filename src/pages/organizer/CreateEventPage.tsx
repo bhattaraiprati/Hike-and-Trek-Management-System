@@ -1,4 +1,8 @@
+import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
+import { createEvent } from '../../api/services/Event';
+import { SuccesfulMessageToast } from '../../utils/Toastify.util';
+import { useNavigate } from 'react-router-dom';
 
 interface EventFormData {
   title: string;
@@ -6,7 +10,7 @@ interface EventFormData {
   location: string;
   date: string;
   durationDays: number;
-  difficultyLevel: 'Easy' | 'Moderate' | 'Hard' | 'Extreme';
+  difficultyLevel: 'EASY' | 'MODERATE' | 'DIFFICULT' | 'EXTREME';
   price: number;
   maxParticipants: number;
   bannerImageUrl: string;
@@ -18,13 +22,14 @@ interface EventFormData {
   requirements: string[];
 }
 const CreateEventPage = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<EventFormData>({
     title: '',
     description: '',
     location: '',
     date: '',
     durationDays: 1,
-    difficultyLevel: 'Moderate',
+    difficultyLevel: 'MODERATE',
     price: 0,
     maxParticipants: 10,
     bannerImageUrl: '',
@@ -35,6 +40,20 @@ const CreateEventPage = () => {
     includedServices: [''],
     requirements: ['']
   });
+
+
+  const mutation = useMutation({
+    mutationFn: createEvent,
+    onSuccess: (data) => {
+      SuccesfulMessageToast('Event created successfully!');
+      navigate('/organizer/dashboard'); // or wherever you want
+    },
+    onError: (error: any) => {
+      const message = error.response?.data?.message || error.message || 'Failed to create event';
+      alert(`Error: ${message}`);
+    },
+  });
+
 
   const [currentService, setCurrentService] = useState('');
   const [currentRequirement, setCurrentRequirement] = useState('');
@@ -86,8 +105,7 @@ const CreateEventPage = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Here you would typically send the data to your backend
-    console.log('Event created:', formData);
-    alert('Event created successfully!');
+    mutation.mutate(formData);
   };
 
   return (
@@ -201,10 +219,10 @@ const CreateEventPage = () => {
                     required
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E3A5F] focus:border-transparent transition-all duration-200"
                   >
-                    <option value="Easy">Easy</option>
-                    <option value="Moderate">Moderate</option>
-                    <option value="Difficult">Difficult</option>
-                    <option value="Expert">Expert</option>
+                    <option value="EASY">Easy</option>
+                    <option value="MODERATE">Moderate</option>
+                    <option value="DIFFICULT">Difficult</option>
+                    <option value="EXTREME">Extreme</option>
                   </select>
                 </div>
               </div>

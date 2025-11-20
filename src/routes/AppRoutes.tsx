@@ -8,6 +8,7 @@ import DashboardPage from "../pages/hiker/DashboardPage";
 import OAuthCallback from "../hooks/OAuthCallback";
 import OrganizerDashboard from "../pages/organizer/OrganizerDashboard";
 import CreateEventPage from "../pages/organizer/CreateEventPage";
+import OrganizerEventsPage from "../pages/organizer/OrganizerEventsPage";
 
 const AppRoutes = () => {
   return (
@@ -26,7 +27,7 @@ const AppRoutes = () => {
           <Route index element={<OrganizerDashboard />} />
           
           {/* Other organizer routes */}
-          <Route path="events" element={<div>My Events Page</div>} />
+          <Route path="events" element={<OrganizerEventsPage />} />
           <Route path="register" element={<CreateEventPage />} />
           <Route path="participants" element={<div>Participants Page</div>} />
           <Route path="messages" element={<div>Messages Page</div>} />

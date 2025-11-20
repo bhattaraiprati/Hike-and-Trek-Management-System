@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/authContext";
 import {
   loginForm,
   registerForm,
@@ -18,6 +17,7 @@ import {
 import { urlLink } from "../api/axiosConfig";
 import { jwtDecode } from "jwt-decode";
 import { useRedirectIfAuthenticated } from "../hooks/useRedirectIfAuthenticated";
+import { useAuth } from "../context/AuthContext";
 
 interface DecodedToken {
   sub?: string;
