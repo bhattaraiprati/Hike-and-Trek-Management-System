@@ -1,0 +1,660 @@
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { getAllEvents } from '../../api/services/Event';
+import { Search, Filter, MapPin, Calendar, Users, Star, Clock, Heart, Share2 } from 'lucide-react';
+
+interface Event {
+  id: number;
+  title: string;
+  description: string;
+  location: string;
+  date: string;
+  durationDays: number;
+  difficultyLevel: 'EASY' | 'MODERATE' | 'DIFFICULT' | 'EXTREME';
+  price: number;
+  maxParticipants: number;
+  currentParticipants: number;
+  bannerImageUrl: string;
+  meetingPoint: string;
+  meetingTime: string;
+  contactPerson: string;
+  contactEmail: string;
+  includedServices: string[];
+  requirements: string[];
+  status: 'APPROVED';
+  organizer: {
+    id: number;
+    name: string;
+    rating: number;
+    totalEvents: number;
+  };
+  rating: number;
+  reviewCount: number;
+  isFeatured?: boolean;
+}
+
+const ExploreEventsPage = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 500]);
+  const [dateRange, setDateRange] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<string>('latest');
+  const [view, setView] = useState<'grid' | 'list'>('grid');
+  const [favorites, setFavorites] = useState<number[]>([]);
+  const [showFilters, setShowFilters] = useState(false);
+
+  const { data: events = [], isLoading, error } = useQuery({
+    queryKey: ['allEvents'],
+    queryFn: getAllEvents,
+  });
+
+  // Mock data for demonstration
+  const mockEvents: Event[] = [
+    {
+      id: 1,
+      title: 'Sunrise Mountain Trek',
+      description: 'Experience the breathtaking sunrise from the peak of Mount Serenity. This guided trek takes you through lush forests and offers panoramic views.',
+      location: 'Mount Serenity, Alpine Range',
+      date: '2024-06-15',
+      durationDays: 2,
+      difficultyLevel: 'MODERATE',
+      price: 129,
+      maxParticipants: 20,
+      currentParticipants: 15,
+      bannerImageUrl: 'https://images.unsplash.com/photo-1551632811-561732d1e306?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+      meetingPoint: 'Alpine Base Camp Parking Lot',
+      meetingTime: '05:30 AM',
+      contactPerson: 'Sarah Johnson',
+      contactEmail: 'sarah@alpineadventures.com',
+      includedServices: ['Professional Guide', 'Safety Equipment', 'First Aid Kit', 'Snacks & Water'],
+      requirements: ['Hiking boots', 'Waterproof jacket', '2L water minimum'],
+      status: 'APPROVED',
+      organizer: {
+        id: 1,
+        name: 'Alpine Adventures',
+        rating: 4.8,
+        totalEvents: 24
+      },
+      rating: 4.7,
+      reviewCount: 128,
+      isFeatured: true
+    },
+    {
+      id: 2,
+      title: 'Forest Valley Exploration',
+      description: 'Discover hidden waterfalls and ancient forests in this guided tour through Green Valley National Park.',
+      location: 'Green Valley National Park',
+      date: '2024-07-20',
+      durationDays: 1,
+      difficultyLevel: 'EASY',
+      price: 79,
+      maxParticipants: 15,
+      currentParticipants: 8,
+      bannerImageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+      meetingPoint: 'National Park Visitor Center',
+      meetingTime: '08:00 AM',
+      contactPerson: 'Mike Wilson',
+      contactEmail: 'mike@foresttours.com',
+      includedServices: ['Professional Guide', 'Lunch', 'Photography Service'],
+      requirements: ['Comfortable shoes', 'Camera', 'Water bottle'],
+      status: 'APPROVED',
+      organizer: {
+        id: 2,
+        name: 'Forest Tours',
+        rating: 4.6,
+        totalEvents: 18
+      },
+      rating: 4.5,
+      reviewCount: 89
+    },
+    {
+      id: 3,
+      title: 'Advanced Rock Climbing',
+      description: 'Challenging rock climbing experience for advanced adventurers on Granite Peak.',
+      location: 'Granite Peak',
+      date: '2024-08-10',
+      durationDays: 3,
+      difficultyLevel: 'EXTREME',
+      price: 299,
+      maxParticipants: 8,
+      currentParticipants: 3,
+      bannerImageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+      meetingPoint: 'Climbing Gear Shop',
+      meetingTime: '06:00 AM',
+      contactPerson: 'Alex Chen',
+      contactEmail: 'alex@climbexperts.com',
+      includedServices: ['Expert Guide', 'All Equipment', 'Accommodation', 'Meals'],
+      requirements: ['Climbing experience', 'Physical fitness certificate'],
+      status: 'APPROVED',
+      organizer: {
+        id: 3,
+        name: 'Climb Experts',
+        rating: 4.9,
+        totalEvents: 12
+      },
+      rating: 4.8,
+      reviewCount: 56,
+      isFeatured: true
+    },
+    {
+      id: 4,
+      title: 'Coastal Cliff Walk',
+      description: 'Scenic coastal walk along dramatic cliffs with ocean views and wildlife spotting.',
+      location: 'Ocean View Cliffs',
+      date: '2024-06-08',
+      durationDays: 1,
+      difficultyLevel: 'EASY',
+      price: 65,
+      maxParticipants: 25,
+      currentParticipants: 18,
+      bannerImageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+      meetingPoint: 'Coastal Visitor Center',
+      meetingTime: '09:00 AM',
+      contactPerson: 'Emma Davis',
+      contactEmail: 'emma@coastalwalks.com',
+      includedServices: ['Guide', 'Binoculars', 'Light Refreshments'],
+      requirements: ['Comfortable walking shoes', 'Sun protection'],
+      status: 'APPROVED',
+      organizer: {
+        id: 4,
+        name: 'Coastal Walks',
+        rating: 4.7,
+        totalEvents: 31
+      },
+      rating: 4.6,
+      reviewCount: 203
+    }
+  ];
+
+  const eventsData = events.length > 0 ? events : mockEvents;
+
+  // Filter and sort events
+  const filteredEvents = eventsData
+    .filter((event: Event) => {
+      const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           event.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           event.description.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesDifficulty = selectedDifficulty === 'all' || 
+                               event.difficultyLevel === selectedDifficulty;
+      
+      const matchesPrice = event.price >= priceRange[0] && event.price <= priceRange[1];
+      
+      const matchesDate = dateRange === 'all' || 
+                         (dateRange === 'upcoming' && new Date(event.date) >= new Date()) ||
+                         (dateRange === 'this-weekend' && isThisWeekend(event.date)) ||
+                         (dateRange === 'this-month' && isThisMonth(event.date));
+      
+      return matchesSearch && matchesDifficulty && matchesPrice && matchesDate;
+    })
+    .sort((a: Event, b: Event) => {
+      switch (sortBy) {
+        case 'price-low':
+          return a.price - b.price;
+        case 'price-high':
+          return b.price - a.price;
+        case 'rating':
+          return b.rating - a.rating;
+        case 'participants':
+          return b.currentParticipants - a.currentParticipants;
+        case 'latest':
+        default:
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
+      }
+    });
+
+  // Helper functions for date filtering
+  function isThisWeekend(dateString: string): boolean {
+    const date = new Date(dateString);
+    const today = new Date();
+    const nextSaturday = new Date(today);
+    nextSaturday.setDate(today.getDate() + (6 - today.getDay()));
+    const nextSunday = new Date(nextSaturday);
+    nextSunday.setDate(nextSaturday.getDate() + 1);
+    
+    return date >= nextSaturday && date <= nextSunday;
+  }
+
+  function isThisMonth(dateString: string): boolean {
+    const date = new Date(dateString);
+    const today = new Date();
+    return date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
+  }
+
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case 'EASY': return 'bg-green-100 text-green-800';
+      case 'MODERATE': return 'bg-yellow-100 text-yellow-800';
+      case 'DIFFICULT': return 'bg-orange-100 text-orange-800';
+      case 'EXTREME': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getDifficultyText = (difficulty: string) => {
+    switch (difficulty) {
+      case 'EASY': return 'Easy';
+      case 'MODERATE': return 'Moderate';
+      case 'DIFFICULT': return 'Difficult';
+      case 'EXTREME': return 'Extreme';
+      default: return difficulty;
+    }
+  };
+
+  const toggleFavorite = (eventId: number) => {
+    setFavorites(prev =>
+      prev.includes(eventId)
+        ? prev.filter(id => id !== eventId)
+        : [...prev, eventId]
+    );
+  };
+
+  const shareEvent = async (event: Event) => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: event.title,
+          text: event.description,
+          url: `${window.location.origin}/events/${event.id}`,
+        });
+      } catch (error) {
+        console.log('Error sharing:', error);
+      }
+    } else {
+      // Fallback: copy to clipboard
+      navigator.clipboard.writeText(`${window.location.origin}/events/${event.id}`);
+      alert('Event link copied to clipboard!');
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex justify-center items-center h-64">
+            <div className="text-lg text-gray-600">Loading events...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex justify-center items-center h-64">
+            <div className="text-lg text-red-600">Error loading events. Please try again.</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-7xl mx-auto px-4">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-[#1E3A5F] mb-4">Explore Adventures</h1>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Discover amazing hiking and trekking experiences curated by professional organizers
+            </p>
+          </div>
+
+          {/* Search and Controls */}
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200 mb-6">
+            <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+              {/* Search Bar */}
+              <div className="flex-1 w-full lg:w-auto">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    type="text"
+                    placeholder="Search events, locations, or keywords..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E3A5F] focus:border-transparent transition-all duration-200"
+                  />
+                </div>
+              </div>
+
+              {/* Controls */}
+              <div className="flex flex-wrap gap-3 items-center">
+                {/* View Toggle */}
+                <div className="flex border border-gray-300 rounded-lg overflow-hidden">
+                  <button
+                    onClick={() => setView('grid')}
+                    className={`p-2 ${view === 'grid' ? 'bg-[#1E3A5F] text-white' : 'bg-white text-gray-600'}`}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => setView('list')}
+                    className={`p-2 ${view === 'list' ? 'bg-[#1E3A5F] text-white' : 'bg-white text-gray-600'}`}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Sort By */}
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E3A5F] focus:border-transparent"
+                >
+                  <option value="latest">Latest</option>
+                  <option value="price-low">Price: Low to High</option>
+                  <option value="price-high">Price: High to Low</option>
+                  <option value="rating">Highest Rated</option>
+                  <option value="participants">Most Popular</option>
+                </select>
+
+                {/* Filter Toggle */}
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 flex items-center gap-2"
+                >
+                  <Filter className="w-4 h-4" />
+                  Filters
+                </button>
+              </div>
+            </div>
+
+            {/* Advanced Filters */}
+            {showFilters && (
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Difficulty Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Difficulty Level
+                    </label>
+                    <select
+                      value={selectedDifficulty}
+                      onChange={(e) => setSelectedDifficulty(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E3A5F] focus:border-transparent"
+                    >
+                      <option value="all">All Levels</option>
+                      <option value="EASY">Easy</option>
+                      <option value="MODERATE">Moderate</option>
+                      <option value="DIFFICULT">Difficult</option>
+                      <option value="EXTREME">Extreme</option>
+                    </select>
+                  </div>
+
+                  {/* Price Range */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Price Range: ${priceRange[0]} - ${priceRange[1]}
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="500"
+                      step="10"
+                      value={priceRange[1]}
+                      onChange={(e) => setPriceRange([0, parseInt(e.target.value)])}
+                      className="w-full"
+                    />
+                  </div>
+
+                  {/* Date Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Date
+                    </label>
+                    <select
+                      value={dateRange}
+                      onChange={(e) => setDateRange(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E3A5F] focus:border-transparent"
+                    >
+                      <option value="all">Any Date</option>
+                      <option value="upcoming">Upcoming</option>
+                      <option value="this-weekend">This Weekend</option>
+                      <option value="this-month">This Month</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Results Count */}
+          <div className="flex justify-between items-center mb-6">
+            <p className="text-gray-600">
+              Showing <span className="font-semibold">{filteredEvents.length}</span> events
+            </p>
+            <div className="flex gap-2">
+              {/* Quick Filter Chips */}
+              {selectedDifficulty !== 'all' && (
+                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                  {getDifficultyText(selectedDifficulty)}
+                </span>
+              )}
+              {priceRange[1] < 500 && (
+                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                  Under ${priceRange[1]}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Events Grid/List */}
+        {view === 'grid' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredEvents.map((event: Event) => (
+              <div key={event.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 group">
+                {event.isFeatured && (
+                  <div className="bg-[#1E3A5F] text-white px-3 py-1 text-xs font-medium absolute top-3 left-3 rounded-full z-10">
+                    Featured
+                  </div>
+                )}
+                <div className="relative">
+                  <div className="h-48 bg-gray-200 overflow-hidden">
+                    <img 
+                      src={event.bannerImageUrl} 
+                      alt={event.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                  <div className="absolute top-3 right-3 flex gap-2">
+                    <button
+                      onClick={() => toggleFavorite(event.id)}
+                      className={`p-2 rounded-full backdrop-blur-sm transition-colors duration-200 ${
+                        favorites.includes(event.id)
+                          ? 'bg-red-500 text-white'
+                          : 'bg-white/90 text-gray-600 hover:bg-white'
+                      }`}
+                    >
+                      <Heart className={`w-4 h-4 ${favorites.includes(event.id) ? 'fill-current' : ''}`} />
+                    </button>
+                    <button
+                      onClick={() => shareEvent(event)}
+                      className="p-2 rounded-full bg-white/90 text-gray-600 hover:bg-white backdrop-blur-sm transition-colors duration-200"
+                    >
+                      <Share2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="p-5">
+                  <div className="flex items-start justify-between mb-3">
+                    <h3 className="font-bold text-lg text-gray-900 line-clamp-1 flex-1">{event.title}</h3>
+                    <span className="text-xl font-bold text-[#1E3A5F] ml-2">${event.price}</span>
+                  </div>
+
+                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">{event.description}</p>
+
+                  <div className="space-y-3 mb-4">
+                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <div className="flex items-center gap-1">
+                        <MapPin className="w-4 h-4" />
+                        <span className="line-clamp-1">{event.location}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-4 h-4" />
+                        {new Date(event.date).toLocaleDateString()}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-4 h-4" />
+                        {event.durationDays} day{event.durationDays > 1 ? 's' : ''}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Users className="w-4 h-4" />
+                        {event.currentParticipants}/{event.maxParticipants} spots
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(event.difficultyLevel)}`}>
+                        {getDifficultyText(event.difficultyLevel)}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                        <span className="text-sm font-medium text-gray-700">{event.rating}</span>
+                        <span className="text-sm text-gray-500">({event.reviewCount})</span>
+                      </div>
+                    </div>
+                    <button className="px-4 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4a7a] transition-colors duration-200 font-medium text-sm">
+                      View Details
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          /* List View */
+          <div className="space-y-4">
+            {filteredEvents.map((event: Event) => (
+              <div key={event.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-300 group">
+                <div className="flex flex-col md:flex-row">
+                  <div className="md:w-64 md:flex-shrink-0">
+                    <div className="h-48 md:h-full bg-gray-200 overflow-hidden">
+                      <img 
+                        src={event.bannerImageUrl} 
+                        alt={event.title}
+                        className="w-full h-60 object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex-1 p-6">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          {event.isFeatured && (
+                            <span className="bg-[#1E3A5F] text-white px-2 py-1 text-xs font-medium rounded-full">
+                              Featured
+                            </span>
+                          )}
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(event.difficultyLevel)}`}>
+                            {getDifficultyText(event.difficultyLevel)}
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-xl text-gray-900 mb-2">{event.title}</h3>
+                        <p className="text-gray-600 mb-4">{event.description}</p>
+                      </div>
+                      <div className="flex gap-2 ml-4">
+                        <button
+                          onClick={() => toggleFavorite(event.id)}
+                          className={`p-2 rounded-full transition-colors duration-200 ${
+                            favorites.includes(event.id)
+                              ? 'bg-red-500 text-white'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          <Heart className={`w-4 h-4 ${favorites.includes(event.id) ? 'fill-current' : ''}`} />
+                        </button>
+                        <button
+                          onClick={() => shareEvent(event)}
+                          className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors duration-200"
+                        >
+                          <Share2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <MapPin className="w-4 h-4" />
+                        <span>{event.location}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Calendar className="w-4 h-4" />
+                        <span>{new Date(event.date).toLocaleDateString()}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Clock className="w-4 h-4" />
+                        <span>{event.durationDays} day{event.durationDays > 1 ? 's' : ''}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Users className="w-4 h-4" />
+                        <span>{event.currentParticipants}/{event.maxParticipants} spots</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                          <span className="font-medium text-gray-700">{event.rating}</span>
+                          <span className="text-gray-500">({event.reviewCount} reviews)</span>
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          By <span className="font-medium">{event.organizer?.name}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <span className="text-2xl font-bold text-[#1E3A5F]">${event.price}</span>
+                        <button className="px-6 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4a7a] transition-colors duration-200 font-medium">
+                          View Details
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Empty State */}
+        {filteredEvents.length === 0 && (
+          <div className="text-center py-16">
+            <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Search className="w-12 h-12 text-gray-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No events found</h3>
+            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+              Try adjusting your search criteria or filters to find more adventures.
+            </p>
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setSelectedDifficulty('all');
+                setPriceRange([0, 500]);
+                setDateRange('all');
+              }}
+              className="px-6 py-3 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4a7a] transition-colors duration-200 font-medium"
+            >
+              Clear All Filters
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default ExploreEventsPage;

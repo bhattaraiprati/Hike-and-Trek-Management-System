@@ -10,6 +10,7 @@ import {
   LogOut,
   Menu
 } from 'lucide-react';
+import { useAuth } from '../../../context/AuthContext';
 
 interface HeaderProps {
   onMenuToggle?: () => void;
@@ -21,6 +22,7 @@ const OrganizerHeader: React.FC<HeaderProps> = ({ onMenuToggle }) => {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const { logout } = useAuth();
   const [notifications] = useState([
     {
       id: 1,
@@ -47,6 +49,10 @@ const OrganizerHeader: React.FC<HeaderProps> = ({ onMenuToggle }) => {
       type: 'social'
     }
   ]);
+
+  const handleLogout = () => {
+    logout();
+  };
 
   const searchRef = useRef<HTMLDivElement>(null);
   const notificationsRef = useRef<HTMLDivElement>(null);
@@ -225,7 +231,7 @@ const OrganizerHeader: React.FC<HeaderProps> = ({ onMenuToggle }) => {
                   </div>
 
                   <div className="p-2 border-t border-gray-200">
-                    <button className="w-full flex items-center space-x-3 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200">
+                    <button onClick={handleLogout} className="w-full flex items-center space-x-3 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200">
                       <LogOut className="w-4 h-4" />
                       <span>Logout</span>
                     </button>

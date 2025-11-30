@@ -27,3 +27,32 @@ export const createEvent = async (data: EventCreateRequest) => {
   });
   return response.data;
 }
+
+export const getOrganizerEvents = async (organizerId: string) => {
+  const response = await axios.get(`${urlLink}/event/organizer/${organizerId}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`, 
+    },
+  });
+  return response.data; 
+
+}
+
+export const updateEvent = async (eventId: number, data: Partial<EventCreateRequest>) => {
+  const response = await axios.put(`${urlLink}/event/${eventId}`, data, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`, 
+    },
+  });
+  return response.data;
+} 
+
+export const getAllEvents = async () => {
+
+  const response = await axios.get(`${urlLink}/event/all`, {  
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`, 
+    },
+  });
+  return response.data; 
+ }
