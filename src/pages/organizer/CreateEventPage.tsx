@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { createEvent } from '../../api/services/Event';
 import { SuccesfulMessageToast } from '../../utils/Toastify.util';
 import { useNavigate } from 'react-router-dom';
+import { Upload, X } from 'lucide-react';
 
 interface EventFormData {
   title: string;
@@ -21,6 +22,7 @@ interface EventFormData {
   includedServices: string[];
   requirements: string[];
 }
+
 const CreateEventPage = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState<EventFormData>({
@@ -41,22 +43,85 @@ const CreateEventPage = () => {
     requirements: ['']
   });
 
+  const [currentService, setCurrentService] = useState('');
+  const [currentRequirement, setCurrentRequirement] = useState('');
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
+  const [isUploading, setIsUploading] = useState(false);
+
+  // Cloudinary upload function
+  const handleImageUpload = async (file: File): Promise<string> => {
+    const data = new FormData();
+    data.append("file", file);
+    data.append("upload_preset", "Trek Sathi");
+    data.append("cloud_name", "dtwunctra");
+
+    try {
+      const response = await fetch(
+        "https://api.cloudinary.com/v1_1/dtwunctra/image/upload",
+        {
+          method: "POST",
+          body: data,
+        }
+      );
+      
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+      
+      const result = await response.json();
+      return result.url;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      throw new Error('Failed to upload image');
+    }
+  };
+
+  // Handle file selection
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image size should be less than 5MB');
+        return;
+      }
+
+      setSelectedImage(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Remove selected image
+  const handleRemoveImage = () => {
+    setSelectedImage(null);
+    setImagePreview('');
+    setFormData(prev => ({ ...prev, bannerImageUrl: '' }));
+  };
 
   const mutation = useMutation({
     mutationFn: createEvent,
     onSuccess: (data) => {
       SuccesfulMessageToast('Event created successfully!');
-      navigate('/organizer/dashboard'); // or wherever you want
+      navigate('/dashboard/events');
     },
     onError: (error: any) => {
       const message = error.response?.data?.message || error.message || 'Failed to create event';
       alert(`Error: ${message}`);
     },
   });
-
-
-  const [currentService, setCurrentService] = useState('');
-  const [currentRequirement, setCurrentRequirement] = useState('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -102,10 +167,38 @@ const CreateEventPage = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically send the data to your backend
-    mutation.mutate(formData);
+    
+    // Validate required fields
+    if (!formData.title || !formData.description || !formData.location || !formData.date) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      let bannerImageUrl = formData.bannerImageUrl;
+
+      // Upload image to Cloudinary if a new image is selected
+      if (selectedImage) {
+        bannerImageUrl = await handleImageUpload(selectedImage);
+      }
+
+      // Create event with the uploaded image URL
+      const eventData = {
+        ...formData,
+        bannerImageUrl
+      };
+
+      mutation.mutate(eventData);
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Failed to upload image. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -258,7 +351,7 @@ const CreateEventPage = () => {
                     Maximum Participants *
                   </label>
                   <input
-                    type="text"
+                    type="number"
                     name="maxParticipants"
                     value={formData.maxParticipants}
                     onChange={handleInputChange}
@@ -360,25 +453,62 @@ const CreateEventPage = () => {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Banner Image URL
+                  Banner Image
                 </label>
-                <input
-                  type="url"
-                  name="bannerImageUrl"
-                  value={formData.bannerImageUrl}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E3A5F] focus:border-transparent transition-all duration-200"
-                  placeholder="https://example.com/image.jpg"
-                />
-                {formData.bannerImageUrl && (
-                  <div className="mt-3">
-                    <img 
-                      src={formData.bannerImageUrl} 
-                      alt="Banner preview" 
-                      className="h-32 object-cover rounded-lg border border-gray-300"
-                    />
-                  </div>
-                )}
+                
+                {/* File Upload Area */}
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#1E3A5F] transition-colors duration-200">
+                  {!imagePreview ? (
+                    <div>
+                      <Upload className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                      <p className="text-gray-600 mb-2">Click to upload or drag and drop</p>
+                      <p className="text-sm text-gray-500 mb-4">PNG, JPG, JPEG up to 5MB</p>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileSelect}
+                        className="hidden"
+                        id="bannerImage"
+                      />
+                      <label
+                        htmlFor="bannerImage"
+                        className="inline-block px-6 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4a7a] transition-colors duration-200 cursor-pointer"
+                      >
+                        Choose Image
+                      </label>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <img 
+                        src={imagePreview} 
+                        alt="Banner preview" 
+                        className="h-48 object-cover rounded-lg border border-gray-300 mx-auto"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleRemoveImage}
+                        className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors duration-200"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Existing URL input (optional) */}
+                {/* <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Or enter image URL
+                  </label>
+                  <input
+                    type="url"
+                    name="bannerImageUrl"
+                    value={formData.bannerImageUrl}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E3A5F] focus:border-transparent transition-all duration-200"
+                    placeholder="https://example.com/image.jpg"
+                  />
+                </div> */}
               </div>
             </section>
 
@@ -478,9 +608,22 @@ const CreateEventPage = () => {
             <div className="flex justify-end pt-6 border-t border-gray-200">
               <button
                 type="submit"
-                className="px-8 py-4 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4a7a] transition-colors duration-200 font-medium text-lg"
+                disabled={isUploading || mutation.isPending}
+                className="px-8 py-4 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4a7a] transition-colors duration-200 font-medium text-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                Create Event
+                {isUploading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Uploading Image...
+                  </>
+                ) : mutation.isPending ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Creating Event...
+                  </>
+                ) : (
+                  'Create Event'
+                )}
               </button>
             </div>
           </div>
@@ -490,4 +633,4 @@ const CreateEventPage = () => {
   );
 };
 
-export default CreateEventPage
+export default CreateEventPage;

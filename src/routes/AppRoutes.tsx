@@ -9,6 +9,8 @@ import OAuthCallback from "../hooks/OAuthCallback";
 import OrganizerDashboard from "../pages/organizer/OrganizerDashboard";
 import CreateEventPage from "../pages/organizer/CreateEventPage";
 import OrganizerEventsPage from "../pages/organizer/OrganizerEventsPage";
+import HikerLayout from "../pages/hiker/HikerLayout";
+import ExploreEventsPage from "../pages/hiker/ExploreEventsPage";
 
 const AppRoutes = () => {
   return (
@@ -23,10 +25,8 @@ const AppRoutes = () => {
       {/* Protected Organizer Routes */}
       <Route element={<ProtectedRoute allowedRoles={["ORGANIZER"]} />}>
         <Route path="/dashboard" element={<OrganizerLayout />}>
-          {/* Dashboard home - exact match */}
           <Route index element={<OrganizerDashboard />} />
           
-          {/* Other organizer routes */}
           <Route path="events" element={<OrganizerEventsPage />} />
           <Route path="register" element={<CreateEventPage />} />
           <Route path="participants" element={<div>Participants Page</div>} />
@@ -38,7 +38,13 @@ const AppRoutes = () => {
 
       {/* Protected Hiker Routes */}
       <Route element={<ProtectedRoute allowedRoles={["HIKER"]} />}>
-        <Route path="/hiker-dashboard" element={<DashboardPage />} />
+        <Route path="/hiker-dashboard" element={<HikerLayout />}>
+          <Route index element={<DashboardPage />} />
+
+          <Route path="explore" element={<ExploreEventsPage />} />
+
+        </Route>
+        {/* <Route path="/hiker-dashboard" element={<DashboardPage />} /> */}
       </Route>
     </Routes>
   );

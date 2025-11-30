@@ -110,7 +110,9 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const logout = () => {
+    localStorage.removeItem("token");
     setAuthToken(null);
+    window.location.reload();
   };
 
   return (
