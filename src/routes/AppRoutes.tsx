@@ -11,6 +11,8 @@ import CreateEventPage from "../pages/organizer/CreateEventPage";
 import OrganizerEventsPage from "../pages/organizer/OrganizerEventsPage";
 import HikerLayout from "../pages/hiker/HikerLayout";
 import ExploreEventsPage from "../pages/hiker/ExploreEventsPage";
+import EventDetailsPage from "../pages/hiker/EventDetailsPage";
+import BookingCheckoutPage from "../pages/hiker/BookingCheckoutPage";
 
 const AppRoutes = () => {
   return (
@@ -42,9 +44,9 @@ const AppRoutes = () => {
           <Route index element={<DashboardPage />} />
 
           <Route path="explore" element={<ExploreEventsPage />} />
-
+          <Route path="event/:eventId" element={<EventDetailsPage />} />
+          <Route path="event/:eventId/checkout" element={<BookingCheckoutPage />} />
         </Route>
-        {/* <Route path="/hiker-dashboard" element={<DashboardPage />} /> */}
       </Route>
     </Routes>
   );
