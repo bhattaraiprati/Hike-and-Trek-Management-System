@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getAllEvents } from '../../api/services/Event';
 import { Search, Filter, MapPin, Calendar, Users, Star, Clock, Heart, Share2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface Event {
   id: number;
@@ -34,6 +35,8 @@ interface Event {
 }
 
 const ExploreEventsPage = () => {
+
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 500]);
@@ -266,6 +269,12 @@ const ExploreEventsPage = () => {
       alert('Event link copied to clipboard!');
     }
   };
+
+  const handleEventView = (id: number) => { 
+    navigate(`/hiker-dashboard/event/${id}`);
+
+  }
+
 
   if (isLoading) {
     return (
@@ -526,7 +535,7 @@ const ExploreEventsPage = () => {
                         <span className="text-sm text-gray-500">({event.reviewCount})</span>
                       </div>
                     </div>
-                    <button className="px-4 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4a7a] transition-colors duration-200 font-medium text-sm">
+                    <button onClick={() => handleEventView(event.id)} className="px-4 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4a7a] transition-colors duration-200 font-medium text-sm">
                       View Details
                     </button>
                   </div>
@@ -617,7 +626,7 @@ const ExploreEventsPage = () => {
                       </div>
                       <div className="flex items-center gap-4">
                         <span className="text-2xl font-bold text-[#1E3A5F]">${event.price}</span>
-                        <button className="px-6 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4a7a] transition-colors duration-200 font-medium">
+                        <button onClick={() => handleEventView(event.id)} className="px-6 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4a7a] transition-colors duration-200 font-medium">
                           View Details
                         </button>
                       </div>

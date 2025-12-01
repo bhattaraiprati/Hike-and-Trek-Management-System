@@ -17,7 +17,7 @@ interface EventData {
   includedServices: string[];
   requirements: string[];
 }
-const OrganizerEventRegistration = () => {
+const EventRegistration = () => {
    const [isRegistered, setIsRegistered] = useState(false);
   const [participantsCount, setParticipantsCount] = useState(1);
 
@@ -255,4 +255,4 @@ const OrganizerEventRegistration = () => {
     </div>
   );
 };
-export default OrganizerEventRegistration
+export default EventRegistration
