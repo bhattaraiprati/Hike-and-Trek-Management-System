@@ -1,5 +1,6 @@
 import axios from "axios";
 import { urlLink } from "../axiosConfig";
+import type { EventRegistrationResponse } from "../../pages/hiker/BookingConfirmationPage";
 
 export interface EventCreateRequest {
   title: string;
@@ -19,6 +20,23 @@ export interface EventCreateRequest {
   requirements?: string[];
 }
 
+export interface ParticipantDTO {
+  name: string;
+  gender: 'MALE' | 'FEMALE' | 'OTHER';
+  nationality: string;
+}
+
+export interface EventRegisterDTO {
+  eventId: number;
+  userId: number;
+  contactName: string;
+  contact: string;
+  email: string;
+  participants: ParticipantDTO[];
+  amount: number;
+  method: 'ESEWA' | 'KHALTI' | 'CARD';
+}
+
 export const createEvent = async (data: EventCreateRequest) => {
   const response = await axios.post(`${urlLink}/organizer/event/register-event`, data, {
     headers: {
@@ -28,7 +46,7 @@ export const createEvent = async (data: EventCreateRequest) => {
   return response.data;
 }
 
-export const getOrganizerEvents = async (organizerId: string) => {
+export const getOrganizerEvents = async (organizerId: number) => {
   const response = await axios.get(`${urlLink}/organizer/event/organizer/${organizerId}`, {
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`, 
@@ -66,3 +84,31 @@ export const getAllEvents = async () => {
   });
   return response.data;
 } 
+
+export const registerEvent = async (data: EventRegisterDTO) => {
+  const response = await axios.post(`${urlLink}/event/register/event`, data, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+  return response.data;
+};
+
+export const fetchBookingDetails = async (id: number): Promise<EventRegistrationResponse> => {
+  const response = await axios.get<EventRegistrationResponse>(`${urlLink}/hiker/registration/${id}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+  console.log("Fetched booking details:", response.data);
+  return response.data;
+};
+
+export const fetchAllEventsByUserId = async (userId: number) => {
+  const response = await axios.get(`${urlLink}/hiker/registration/events/${userId}`, {
+    headers: {  
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+  return response.data; 
+}
