@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ArrowLeft, CreditCard, Smartphone, User, Mail, Phone, Globe, ShieldCheck } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { getEventById } from '../../api/services/Event';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { getEventById, registerEvent } from '../../api/services/Event';
+import { useAuth } from '../../context/AuthContext';
 
 interface Participant {
   id: number;
@@ -60,6 +61,23 @@ interface EventInfo {
   organizer: OrganizerData; // Make sure this matches your API response
 }
 
+interface ParticipantDTO {
+  name: string;
+  gender: 'MALE' | 'FEMALE' | 'OTHER';
+  nationality: string;
+}
+
+interface EventRegisterDTO {
+  eventId: number;
+  userId: number;
+  contactName: string;
+  contact: string;
+  email: string;
+  participants: ParticipantDTO[];
+  amount: number;
+  method: 'ESEWA' | 'KHALTI' | 'CARD';
+}
+
 const BookingCheckoutPage = () => {
   const navigate = useNavigate();
   const { eventId } = useParams<{ eventId: string }>();
@@ -83,6 +101,58 @@ const BookingCheckoutPage = () => {
     enabled: !!eventId, // Only run if eventId exists
   });
 
+  const { user } = useAuth(); // Get logged-in user
+const [isSubmitting, setIsSubmitting] = useState(false);
+
+const registerMutation = useMutation({
+  mutationFn: registerEvent,
+  onSuccess: (paymentRequest: any) => {
+    // This is the EsewaPaymentRequest object returned from backend
+    console.log('Registration successful, redirecting to eSewa with:', paymentRequest);
+    handleEsewaRedirect(paymentRequest);
+  },
+  onError: (error: any) => {
+    console.error('Registration failed:', error);
+    alert(error.response?.data?.message || 'Payment initiation failed. Please try again.');
+    setIsSubmitting(false);
+  },
+});
+
+
+const handleEsewaRedirect = (paymentRequest: any) => {
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = 'https://rc-epay.esewa.com.np/api/epay/main/v2/form';
+
+  // Use exact field names as expected by eSewa (snake_case)
+  const fields: Record<string, string> = {
+    amount: paymentRequest.amount,
+    tax_amount: paymentRequest.tax_amount,
+    total_amount: paymentRequest.total_amount,
+    transaction_uuid: paymentRequest.transaction_uuid,
+    product_code: paymentRequest.product_code,
+    product_service_charge: paymentRequest.product_service_charge,
+    product_delivery_charge: paymentRequest.product_delivery_charge,
+    success_url: paymentRequest.success_url,
+    failure_url: paymentRequest.failure_url,
+    signed_field_names: paymentRequest.signed_field_names,
+    signature: paymentRequest.signature,
+  };
+
+  Object.entries(fields).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = key;
+      input.value = value;
+      form.appendChild(input);
+    }
+  });
+
+  document.body.appendChild(form);
+  form.submit();
+};
+
   
   const [billingInfo, setBillingInfo] = useState<BillingInfo>({
     contactName: '',
@@ -94,15 +164,6 @@ const BookingCheckoutPage = () => {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Mock event data - replace with actual API call
-//   const eventInfo: EventInfo = {
-//     id: 1,
-//     title: 'Sunrise Mountain Trek',
-//     date: '2024-06-15',
-//     price: 129,
-//     organizer: 'TrekNepal Adventures',
-//     bannerImageUrl: 'https://images.unsplash.com/photo-1551632811-561732d1e306?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
-//   };
 
 // Loading state
   if (isLoading) {
@@ -248,23 +309,43 @@ const BookingCheckoutPage = () => {
   };
 
   const handleSubmitPayment = async () => {
-    if (currentStep === 3 && validateStep3()) {
-      // TODO: Integrate with payment gateway
-      console.log('Payment submitted:', {
-        eventId,
-        participants,
-        billingInfo,
-        paymentMethod,
-        totalAmount: eventInfo?.price * participants.length
-      });
+  if (!validateStep3()) return;
 
-      // Simulate payment processing
-      setTimeout(() => {
-        alert('Payment successful! Booking confirmed.');
-        navigate(`/hiker/booking-confirmation/${eventId}`);
-      }, 2000);
-    }
+  if (!user?.id) {
+    alert('You must be logged in to book an event.');
+    navigate('/login');
+    return;
+  }
+
+  setIsSubmitting(true);
+
+  const totalAmount = eventInfo.price * participants.length;
+
+  // Map participants to backend format
+  const backendParticipants = participants.map(p => ({
+    name: `${p.title} ${p.firstName} ${p.lastName}`.trim(),
+    gender: p.title === 'Mrs' ? 'FEMALE' : 'MALE' as 'MALE' | 'FEMALE',
+    nationality: p.nationality === 'Nepalese' ? 'Nepali' : 
+                 p.nationality === 'Indian' ? 'Indian' : 'Other',
+  }));
+
+  const payload: EventRegisterDTO = {
+    eventId: Number(eventId),
+    userId: Number(user.id),
+    contactName: billingInfo.contactName,
+    contact: billingInfo.contactPhone.replace(/\D/g, ''), // Clean phone
+    email: billingInfo.contactEmail,
+    participants: backendParticipants,
+    amount: totalAmount,
+    method: paymentMethod.type === 'esewa' ? 'ESEWA' : 'CARD', // Adjust if more methods
   };
+
+  try {
+    registerMutation.mutate(payload);
+  } catch (err) {
+    setIsSubmitting(false);
+  }
+};
 
   const totalAmount = eventInfo.price * participants.length;
 
@@ -670,10 +751,19 @@ const BookingCheckoutPage = () => {
                     </button>
                     <button
                       onClick={handleSubmitPayment}
-                      className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium flex items-center gap-2"
+                      disabled={isSubmitting || registerMutation.isPending}
+                      className={`px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium flex items-center gap-2 ${
+                        isSubmitting || registerMutation.isPending ? 'opacity-70 cursor-not-allowed' : ''
+                      }`}
                     >
-                      <CreditCard className="w-4 h-4" />
-                      Pay ${totalAmount}
+                      {isSubmitting || registerMutation.isPending ? (
+                        <>Processing...</>
+                      ) : (
+                        <>
+                          <CreditCard className="w-4 h-4" />
+                          Pay ${totalAmount}
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>
