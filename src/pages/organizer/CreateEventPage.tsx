@@ -113,7 +113,7 @@ const CreateEventPage = () => {
 
   const mutation = useMutation({
     mutationFn: createEvent,
-    onSuccess: (data) => {
+    onSuccess: () => {
       SuccesfulMessageToast('Event created successfully!');
       navigate('/dashboard/events');
     },

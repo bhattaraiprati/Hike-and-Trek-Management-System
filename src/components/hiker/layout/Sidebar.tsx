@@ -50,7 +50,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: 'explore',   label: 'Explore',        icon: Map,             to: '/hiker-dashboard/explore' },
     { id: 'messages',  label: 'Messages',       icon: MessageSquare,   to: '/hiker-dashboard/messages' },
     { id: 'profile',   label: 'Profile',        icon: User,            to: '/hiker-dashboard/profile' },
-    { id: 'settings',  label: 'Settings',       icon: Settings,        to: '/hiker-dashboard/settings' },
+    // { id: 'settings',  label: 'Settings',       icon: Settings,        to: '/hiker-dashboard/settings' },
   ];
 
   // Same active logic as OrganizerSidebar

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getAllEvents } from '../../api/services/Event';
-import { Search, Filter, MapPin, Calendar, Users, Star, Clock, Heart, Share2 } from 'lucide-react';
+import { Search, Filter, MapPin, Calendar, Users, Star, Clock, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface Event {
@@ -252,29 +252,10 @@ const ExploreEventsPage = () => {
     );
   };
 
-  const shareEvent = async (event: Event) => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: event.title,
-          text: event.description,
-          url: `${window.location.origin}/events/${event.id}`,
-        });
-      } catch (error) {
-        console.log('Error sharing:', error);
-      }
-    } else {
-      // Fallback: copy to clipboard
-      navigator.clipboard.writeText(`${window.location.origin}/events/${event.id}`);
-      alert('Event link copied to clipboard!');
-    }
-  };
-
   const handleEventView = (id: number) => { 
     navigate(`/hiker-dashboard/event/${id}`);
 
   }
-
 
   if (isLoading) {
     return (
@@ -484,12 +465,7 @@ const ExploreEventsPage = () => {
                     >
                       <Heart className={`w-4 h-4 ${favorites.includes(event.id) ? 'fill-current' : ''}`} />
                     </button>
-                    <button
-                      onClick={() => shareEvent(event)}
-                      className="p-2 rounded-full bg-white/90 text-gray-600 hover:bg-white backdrop-blur-sm transition-colors duration-200"
-                    >
-                      <Share2 className="w-4 h-4" />
-                    </button>
+                    
                   </div>
                 </div>
 
@@ -585,12 +561,7 @@ const ExploreEventsPage = () => {
                         >
                           <Heart className={`w-4 h-4 ${favorites.includes(event.id) ? 'fill-current' : ''}`} />
                         </button>
-                        <button
-                          onClick={() => shareEvent(event)}
-                          className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors duration-200"
-                        >
-                          <Share2 className="w-4 h-4" />
-                        </button>
+                       
                       </div>
                     </div>
 

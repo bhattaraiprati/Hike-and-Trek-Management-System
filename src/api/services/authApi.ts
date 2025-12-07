@@ -23,7 +23,6 @@ interface OrganizerRegistrationDTO {
   about: string;
 }
 
-
 interface OTPVerification {
   email: string;
   otp: string;
@@ -31,6 +30,10 @@ interface OTPVerification {
 
 interface ResendOTP {
   email: string;
+}
+interface uploadImage{
+  id:String,
+  image: String
 }
 
 export const loginForm = async (data: LoginData) => {
@@ -59,3 +62,27 @@ export const resendOTP = async (data: ResendOTP) => {
   });
   return response.data;
 };
+
+export const checkAuth = async () => {
+  const token = localStorage.getItem("token");
+  const response = await axios.get(`${urlLink}/event/check`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.data;
+};
+
+export const uploadImage = async (data:uploadImage) => {
+  const response = await axios.post(`${urlLink}/auth/uploadImage`, data);
+  return response.data;
+}
+
+export const getProfileUrl = async (id:Number) => {
+  const response = await axios.get(`${urlLink}/auth/getProfileImage`, {
+    params: { id: id }
+  });
+  return response.data;
+}
+
+

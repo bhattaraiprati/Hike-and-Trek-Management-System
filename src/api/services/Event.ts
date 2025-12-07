@@ -112,3 +112,13 @@ export const fetchAllEventsByUserId = async (userId: number) => {
   });
   return response.data; 
 }
+
+export const getUpcommingEvents = async (id:Number) => {
+  const response = await axios.get(`${urlLink}/event/upcoming`,{
+    params: { id },
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+  return response.data; 
+}

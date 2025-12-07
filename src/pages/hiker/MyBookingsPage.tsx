@@ -1,177 +1,92 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search,  Calendar, MapPin, Users, Clock, Eye,  Star, ChevronRight} from 'lucide-react';
+import { Search, Calendar, MapPin, Users, Clock, Eye, Star, ChevronRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchAllEventsByUserId } from '../../api/services/Event';
 import { useAuth } from '../../context/AuthContext';
 
-interface Booking {
-  id: string;
+interface BookingDetails {
+  bookingId: number;
   bookingDate: string;
-  status: 'upcoming' | 'completed' | 'cancelled' | 'pending';
   event: {
     id: number;
     title: string;
+    location: string;
     date: string;
     durationDays: number;
-    location: string;
+    status: string;
+    difficultyLevel: string;
+    price: number;
     bannerImageUrl: string;
     meetingPoint: string;
     meetingTime: string;
-    organizer: string;
-    difficultyLevel: 'Easy' | 'Moderate' | 'Difficult' | 'Expert';
+    organizer: {
+      name: string;
+    };
   };
-  participants: {
+  participants: Array<{
     count: number;
-    list: string[];
-  };
+  }>;
   payment: {
+    method: string;
     amount: number;
-    method: 'esewa' | 'card' | 'khalti' | 'cash';
-    status: 'paid' | 'pending' | 'refunded';
+    status: string;
   };
-  canCancel: boolean;
-  canReview: boolean;
-  reviewSubmitted?: boolean;
 }
 
 const MyBookingsPage = () => {
-    const {user} = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState<string>('upcoming');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedDateFilter, setSelectedDateFilter] = useState<string>('all');
   const [view, setView] = useState<'grid' | 'list'>('grid');
-//   const [selectedBookings, setSelectedBookings] = useState<string[]>([]);
+  const [bookingsData, setBookingData] = useState<BookingDetails[]>([]);
 
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['bookings', user?.id],
+    queryFn: () => fetchAllEventsByUserId(Number(user?.id)),
+    enabled: !!user?.id,
+    retry: 1
+  });
 
-    const {data, isLoading, error} = useQuery({
-        queryKey: ['bookings'],
-        queryFn: () => fetchAllEventsByUserId(Number(user?.id)), // Replace 0 with a fallback or handle undefined user ID
-        enabled: !!user?.id,
-        retry: 1
-    })
-    useEffect(() => {
-        if (data) {
-            
-        }
-      }, [data]);
-  // Mock booking data
-  const bookingsData: Booking[] = [
-    {
-      id: 'BK202406151234',
-      bookingDate: '2024-05-20',
-      status: 'upcoming',
-      event: {
-        id: 1,
-        title: 'Sunrise Mountain Trek',
-        date: '2024-06-15',
-        durationDays: 2,
-        location: 'Mount Serenity, Alpine Range',
-        bannerImageUrl: 'https://images.unsplash.com/photo-1551632811-561732d1e306?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-        meetingPoint: 'Alpine Base Camp Parking Lot',
-        meetingTime: '05:30 AM',
-        organizer: 'TrekNepal Adventures',
-        difficultyLevel: 'Moderate'
-      },
-      participants: {
-        count: 2,
-        list: ['John Doe', 'Jane Doe']
-      },
-      payment: {
-        amount: 258,
-        method: 'esewa',
-        status: 'paid'
-      },
-      canCancel: true,
-      canReview: false
-    },
-    {
-      id: 'BK202407200567',
-      bookingDate: '2024-04-15',
-      status: 'completed',
-      event: {
-        id: 2,
-        title: 'Forest Valley Exploration',
-        date: '2024-05-20',
-        durationDays: 1,
-        location: 'Green Valley National Park',
-        bannerImageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-        meetingPoint: 'National Park Visitor Center',
-        meetingTime: '08:00 AM',
-        organizer: 'Forest Tours',
-        difficultyLevel: 'Easy'
-      },
-      participants: {
-        count: 1,
-        list: ['John Doe']
-      },
-      payment: {
-        amount: 79,
-        method: 'card',
-        status: 'paid'
-      },
-      canCancel: false,
-      canReview: true,
-      reviewSubmitted: false
-    },
-    {
-      id: 'BK202408100891',
-      bookingDate: '2024-06-01',
-      status: 'upcoming',
-      event: {
-        id: 3,
-        title: 'Advanced Rock Climbing',
-        date: '2024-08-10',
-        durationDays: 3,
-        location: 'Granite Peak',
-        bannerImageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-        meetingPoint: 'Climbing Gear Shop',
-        meetingTime: '06:00 AM',
-        organizer: 'Climb Experts',
-        difficultyLevel: 'Difficult'
-      },
-      participants: {
-        count: 1,
-        list: ['John Doe']
-      },
-      payment: {
-        amount: 299,
-        method: 'khalti',
-        status: 'paid'
-      },
-      canCancel: true,
-      canReview: false
-    },
-    {
-      id: 'BK202406080345',
-      bookingDate: '2024-05-10',
-      status: 'cancelled',
-      event: {
-        id: 4,
-        title: 'Coastal Cliff Walk',
-        date: '2024-06-08',
-        durationDays: 1,
-        location: 'Ocean View Cliffs',
-        bannerImageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-        meetingPoint: 'Coastal Visitor Center',
-        meetingTime: '09:00 AM',
-        organizer: 'Coastal Walks',
-        difficultyLevel: 'Easy'
-      },
-      participants: {
-        count: 3,
-        list: ['John Doe', 'Alice Smith', 'Bob Johnson']
-      },
-      payment: {
-        amount: 195,
-        method: 'cash',
-        status: 'refunded'
-      },
-      canCancel: false,
-      canReview: false
+  useEffect(() => {
+    if (data) {
+      setBookingData(data);
     }
-  ];
+  }, [data]);
+
+  // Helper function to determine booking status from event date
+  const getBookingStatus = (eventDate: string): 'upcoming' | 'completed' | 'cancelled' | 'pending' => {
+    const now = new Date();
+    const eventDateTime = new Date(eventDate);
+    
+    // Check if event is in the past
+    if (eventDateTime < now) {
+      return 'completed';
+    }
+    // Event is in the future
+    return 'upcoming';
+    
+    // Note: In your API response, there's no direct "status" for booking
+    // You might need to adjust this based on your actual business logic
+    // If you have cancellation status in payment or elsewhere, update accordingly
+  };
+
+  // Helper function to get payment status
+  const getPaymentStatus = (paymentStatus: string): 'paid' | 'pending' | 'refunded' => {
+    switch (paymentStatus?.toLowerCase()) {
+      case 'success':
+      case 'paid':
+        return 'paid';
+      case 'pending':
+        return 'pending';
+      case 'refunded':
+        return 'refunded';
+      default:
+        return 'paid'; // Default to paid for successful payments
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -194,18 +109,19 @@ const MyBookingsPage = () => {
   };
 
   const getPaymentMethodText = (method: string) => {
-    switch (method) {
+    switch (method?.toLowerCase()) {
       case 'esewa': return 'eSewa';
       case 'card': return 'Card';
       case 'khalti': return 'Khalti';
       case 'cash': return 'Cash';
-      default: return method;
+      default: return method || 'Unknown';
     }
   };
 
   const getPaymentStatusColor = (status: string) => {
-    switch (status) {
-      case 'paid': return 'text-green-600';
+    switch (status?.toLowerCase()) {
+      case 'paid':
+      case 'success': return 'text-green-600';
       case 'pending': return 'text-yellow-600';
       case 'refunded': return 'text-red-600';
       default: return 'text-gray-600';
@@ -214,49 +130,75 @@ const MyBookingsPage = () => {
 
   const filterBookings = () => {
     return bookingsData.filter(booking => {
-      const matchesSearch = booking.event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           booking.event.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           booking.id.toLowerCase().includes(searchTerm.toLowerCase());
+      const bookingStatus = getBookingStatus(booking.event.date);
       
-      const matchesStatus = selectedStatus === 'all' || booking.status === selectedStatus;
+      const matchesSearch = 
+        booking.event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        booking.event.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        booking.bookingId.toString().includes(searchTerm.toLowerCase());
+      
+      const matchesStatus = selectedStatus === 'all' || bookingStatus === selectedStatus;
+      
+      const eventDate = new Date(booking.event.date);
+      const now = new Date();
+      const nextMonth = new Date(now);
+      nextMonth.setMonth(now.getMonth() + 1);
       
       const matchesDate = selectedDateFilter === 'all' || 
-                         (selectedDateFilter === 'upcoming' && booking.status === 'upcoming') ||
-                         (selectedDateFilter === 'past' && booking.status === 'completed') ||
-                         (selectedDateFilter === 'month' && isWithinMonth(booking.event.date));
+        (selectedDateFilter === 'upcoming' && bookingStatus === 'upcoming') ||
+        (selectedDateFilter === 'past' && bookingStatus === 'completed') ||
+        (selectedDateFilter === 'month' && eventDate >= now && eventDate <= nextMonth);
 
       return matchesSearch && matchesStatus && matchesDate;
     });
   };
 
-  const isWithinMonth = (dateString: string) => {
-    const eventDate = new Date(dateString);
-    const now = new Date();
-    const nextMonth = new Date(now);
-    nextMonth.setMonth(now.getMonth() + 1);
-    return eventDate >= now && eventDate <= nextMonth;
-  };
-
   const filteredBookings = filterBookings();
 
-
-
-  const handleWriteReview = (bookingId: string) => {
+  const handleWriteReview = (bookingId: number) => {
     navigate(`/hiker/write-review/${bookingId}`);
   };
 
-  const handleViewDetails = (bookingId: string) => {
-    navigate(`/hiker/booking/${bookingId}`);
+  const handleViewDetails = (bookingId: number) => {
+    navigate(`/hiker-dashboard/booking-confirmation/${bookingId}`);
   };
 
-
-
+  // Calculate stats
   const stats = {
     total: bookingsData.length,
-    upcoming: bookingsData.filter(b => b.status === 'upcoming').length,
-    completed: bookingsData.filter(b => b.status === 'completed').length,
-    cancelled: bookingsData.filter(b => b.status === 'cancelled').length
+    upcoming: bookingsData.filter(b => getBookingStatus(b.event.date) === 'upcoming').length,
+    completed: bookingsData.filter(b => getBookingStatus(b.event.date) === 'completed').length,
+    cancelled: bookingsData.filter(b => b.payment.status?.toLowerCase() === 'refunded' || 
+                                       b.event.status?.toLowerCase() === 'cancelled').length
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1E3A5F] mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading your bookings...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-red-600 mb-2">Error Loading Bookings</h2>
+          <p className="text-gray-600 mb-4">Unable to load your bookings. Please try again.</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4a7a]"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -316,7 +258,6 @@ const MyBookingsPage = () => {
                 <option value="upcoming">Upcoming</option>
                 <option value="completed">Completed</option>
                 <option value="cancelled">Cancelled</option>
-                <option value="pending">Pending</option>
               </select>
 
               {/* Date Filter */}
@@ -352,8 +293,6 @@ const MyBookingsPage = () => {
               </div>
             </div>
           </div>
-
-       
         </div>
 
         {/* Bookings Grid/List */}
@@ -367,7 +306,7 @@ const MyBookingsPage = () => {
               {searchTerm || selectedStatus !== 'all' ? 'Try adjusting your search criteria' : 'Start exploring adventures and make your first booking!'}
             </p>
             <button
-              onClick={() => navigate('/hiker/explore')}
+              onClick={() => navigate('/hiker-dashboard/explore')}
               className="px-6 py-3 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4a7a] transition-colors duration-200 font-medium"
             >
               Explore Events
@@ -375,90 +314,98 @@ const MyBookingsPage = () => {
           </div>
         ) : view === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredBookings.map((booking) => (
-              <div key={booking.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300">
-                {/* Booking Header */}
-                <div className="relative">
-                  <div className="h-48 bg-gray-200 overflow-hidden">
-                    <img
-                      src={booking.event.bannerImageUrl}
-                      alt={booking.event.title}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                  <div className="absolute top-3 left-3 flex gap-2">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
-                      {getStatusText(booking.status)}
-                    </span>
-                   
-                  </div>
-                
-                </div>
-
-                {/* Booking Content */}
-                <div className="p-5">
-                  <div className="flex justify-between items-start mb-3">
-                    <h3 className="font-bold text-lg text-gray-900 line-clamp-1">{booking.event.title}</h3>
-                    <span className="text-lg font-bold text-[#1E3A5F]">${booking.payment.amount}</span>
-                  </div>
-
-                  <div className="space-y-3 mb-4">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Calendar className="w-4 h-4" />
-                      {new Date(booking.event.date).toLocaleDateString()}
+            {filteredBookings.map((booking) => {
+              const bookingStatus = getBookingStatus(booking.event.date);
+              const paymentStatus = getPaymentStatus(booking.payment.status);
+              
+              return (
+                <div key={booking.bookingId} className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                  {/* Booking Header */}
+                  <div className="relative">
+                    <div className="h-48 bg-gray-200 overflow-hidden">
+                      <img
+                        src={booking.event.bannerImageUrl}
+                        alt={booking.event.title}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1551632811-561732d1e306?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80';
+                        }}
+                      />
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <MapPin className="w-4 h-4" />
-                      <span className="line-clamp-1">{booking.event.location}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Users className="w-4 h-4" />
-                      {booking.participants.count} participant{booking.participants.count !== 1 ? 's' : ''}
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Clock className="w-4 h-4" />
-                      {booking.event.durationDays} day{booking.event.durationDays > 1 ? 's' : ''}
+                    <div className="absolute top-3 left-3 flex gap-2">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(bookingStatus)}`}>
+                        {getStatusText(bookingStatus)}
+                      </span>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="text-sm">
-                      <span className="text-gray-600">Booking ID: </span>
-                      <span className="font-mono font-medium">{booking.id}</span>
+                  {/* Booking Content */}
+                  <div className="p-5">
+                    <div className="flex justify-between items-start mb-3">
+                      <h3 className="font-bold text-lg text-gray-900 line-clamp-1">{booking.event.title}</h3>
+                      <span className="text-lg font-bold text-[#1E3A5F]">${booking.payment.amount}</span>
                     </div>
-                    <div className={`text-sm font-medium ${getPaymentStatusColor(booking.payment.status)}`}>
-                      {getPaymentMethodText(booking.payment.method)} • {booking.payment.status}
+
+                    <div className="space-y-3 mb-4">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Calendar className="w-4 h-4" />
+                        {new Date(booking.event.date).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <MapPin className="w-4 h-4" />
+                        <span className="line-clamp-1">{booking.event.location}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Users className="w-4 h-4" />
+                        {booking.participants[0]?.count || 1} participant{booking.participants[0]?.count !== 1 ? 's' : ''}
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Clock className="w-4 h-4" />
+                        {booking.event.durationDays} day{booking.event.durationDays > 1 ? 's' : ''}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Action Buttons */}
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleViewDetails(booking.id)}
-                      className="flex-1 px-3 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4a7a] transition-colors duration-200 font-medium text-sm flex items-center justify-center gap-2"
-                    >
-                      <Eye className="w-4 h-4" />
-                      View Details
-                    </button>
-            
-                  </div>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="text-sm">
+                        <span className="text-gray-600">Booking ID: </span>
+                        <span className="font-mono font-medium">{booking.bookingId}</span>
+                      </div>
+                      <div className={`text-sm font-medium ${getPaymentStatusColor(paymentStatus)}`}>
+                        {getPaymentMethodText(booking.payment.method)} • {paymentStatus}
+                      </div>
+                    </div>
 
-                  {/* Additional Actions */}
-                  <div className="flex gap-0 mt-3">
-          
-                    {booking.canReview && !booking.reviewSubmitted && (
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
                       <button
-                        onClick={() => handleWriteReview(booking.id)}
-                        className="flex-1 px-3 py-2 border border-green-300 text-green-600 rounded-lg hover:bg-green-50 transition-colors duration-200 text-sm flex items-center justify-center gap-1"
+                        onClick={() => handleViewDetails(booking.bookingId)}
+                        className="flex-1 px-3 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4a7a] transition-colors duration-200 font-medium text-sm flex items-center justify-center gap-2"
                       >
-                        <Star className="w-4 h-4" />
-                        Write Review
+                        <Eye className="w-4 h-4" />
+                        View Details
                       </button>
+                    </div>
+
+                    {/* Review button for completed events */}
+                    {bookingStatus === 'completed' && (
+                      <div className="flex gap-0 mt-3">
+                        <button
+                          onClick={() => handleWriteReview(booking.bookingId)}
+                          className="flex-1 px-3 py-2 border border-green-300 text-green-600 rounded-lg hover:bg-green-50 transition-colors duration-200 text-sm flex items-center justify-center gap-1"
+                        >
+                          <Star className="w-4 h-4" />
+                          Write Review
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           /* List View */
@@ -466,8 +413,7 @@ const MyBookingsPage = () => {
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-         
-                  <th className="px-10 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Location</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Participants</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
@@ -476,64 +422,74 @@ const MyBookingsPage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredBookings.map((booking) => (
-                  <tr key={booking.id} className="hover:bg-gray-50">
-            
-                    <td className="px-6 py-4">
-                      <div className="flex items-center">
-                        <img
-                          src={booking.event.bannerImageUrl}
-                          alt={booking.event.title}
-                          className="w-12 h-12 rounded-lg object-cover mr-3"
-                        />
-                        <div>
-                          <div className="font-medium text-gray-900 line-clamp-1">{booking.event.title}</div>
-                          <div className="text-xs text-gray-500">ID: {booking.id}</div>
-                          <div className="text-xs text-gray-500">{booking.event.organizer}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">
-                        {new Date(booking.event.date).toLocaleDateString()}
-                      </div>
-                      <div className="text-sm text-gray-500 line-clamp-1">{booking.event.location}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">
-                        {booking.participants.count} person{booking.participants.count !== 1 ? 's' : ''}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        ${booking.payment.amount} total
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">
-                        {getPaymentMethodText(booking.payment.method)}
-                      </div>
-                      <div className={`text-xs font-medium ${getPaymentStatusColor(booking.payment.status)}`}>
-                        {booking.payment.status}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
-                        {getStatusText(booking.status)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleViewDetails(booking.id)}
-                          className="text-[#1E3A5F] hover:text-[#2a4a7a] transition-colors duration-200 text-sm font-medium flex items-center gap-1"
-                        >
-                          View
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
+                {filteredBookings.map((booking) => {
+                  const bookingStatus = getBookingStatus(booking.event.date);
+                  const paymentStatus = getPaymentStatus(booking.payment.status);
                   
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                  return (
+                    <tr key={booking.bookingId} className="hover:bg-gray-50">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center">
+                          <img
+                            src={booking.event.bannerImageUrl}
+                            alt={booking.event.title}
+                            className="w-12 h-12 rounded-lg object-cover mr-3"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1551632811-561732d1e306?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80';
+                            }}
+                          />
+                          <div>
+                            <div className="font-medium text-gray-900 line-clamp-1">{booking.event.title}</div>
+                            <div className="text-xs text-gray-500">ID: {booking.bookingId}</div>
+                            <div className="text-xs text-gray-500">{booking.event.organizer.name}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-medium text-gray-900">
+                          {new Date(booking.event.date).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                        </div>
+                        <div className="text-sm text-gray-500 line-clamp-1">{booking.event.location}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-medium text-gray-900">
+                          {booking.participants[0]?.count || 1} person{booking.participants[0]?.count !== 1 ? 's' : ''}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          ${booking.payment.amount} total
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-medium text-gray-900">
+                          {getPaymentMethodText(booking.payment.method)}
+                        </div>
+                        <div className={`text-xs font-medium ${getPaymentStatusColor(paymentStatus)}`}>
+                          {paymentStatus}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(bookingStatus)}`}>
+                          {getStatusText(bookingStatus)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleViewDetails(booking.bookingId)}
+                            className="text-[#1E3A5F] hover:text-[#2a4a7a] transition-colors duration-200 text-sm font-medium flex items-center gap-1"
+                          >
+                            View
+                            <ChevronRight className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
