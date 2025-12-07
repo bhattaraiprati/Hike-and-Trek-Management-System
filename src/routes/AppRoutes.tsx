@@ -15,6 +15,7 @@ import EventDetailsPage from "../pages/hiker/EventDetailsPage";
 import BookingCheckoutPage from "../pages/hiker/BookingCheckoutPage";
 import BookingConfirmationPage from "../pages/hiker/BookingConfirmationPage";
 import MyBookingsPage from "../pages/hiker/MyBookingsPage";
+import HikerProfilePage from "../pages/hiker/HikerProfilePage";
 
 const AppRoutes = () => {
   return (
@@ -47,6 +48,7 @@ const AppRoutes = () => {
 
           <Route path="events" element={<MyBookingsPage />} />
           <Route path="explore" element={<ExploreEventsPage />} />
+          <Route path="profile" element={<HikerProfilePage />} />
           <Route path="event/:eventId" element={<EventDetailsPage />} />
           <Route path="event/:eventId/checkout" element={<BookingCheckoutPage />} />
           <Route path="booking-confirmation/:bookingId" element={<BookingConfirmationPage />} />

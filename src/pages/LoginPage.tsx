@@ -77,6 +77,7 @@ const LoginPage = () => {
     mutationFn: loginForm,
     onSuccess: (data) => {
       localStorage.setItem("token", data.token);
+      localStorage.setItem("refreshToken", data.refreshToken);
       console.log("Token stored in localStorage", data.token);
       // Use auth context login
       login(data.token);

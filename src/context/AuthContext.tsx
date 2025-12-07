@@ -1,5 +1,6 @@
+import axios from "axios";
 import { jwtDecode } from "jwt-decode";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 
 // Define types
@@ -23,6 +24,13 @@ interface DecodedToken {
   name: string;
   role: string;
   id: string;
+  exp: number; // Expiration time in seconds
+  iat: number; // Issued at time
+}
+
+interface LoginResponse {
+  token: string;
+  refreshToken: string;
 }
 
 // Create context with proper typing
@@ -53,6 +61,18 @@ function decodeToken(token: string): User | null {
   }
 }
 
+function isTokenExpired(token: string): boolean {
+  try {
+    const decoded = jwtDecode<DecodedToken>(token);
+    const currentTime = Date.now() / 1000; // Convert to seconds
+    // Add 60 second buffer to refresh before actual expiration
+    return decoded.exp < currentTime + 60;
+  } catch (err) {
+    console.error("Error checking token expiration:", err);
+    return true;
+  }
+}
+
 interface AuthProviderProps {
   children: ReactNode;
 }
@@ -62,10 +82,58 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     return localStorage.getItem("token");
   });
 
+  const [refreshToken, setRefreshToken] = useState<string | null>(() => {
+    return localStorage.getItem("refreshToken");
+  });
+
   const [user, setUser] = useState<User | null>(() => {
     const token = localStorage.getItem("token");
     return token ? decodeToken(token) : null;
   });
+
+  // Refresh the access token
+  const refreshAccessToken = useCallback(async () => {
+    const currentRefreshToken = localStorage.getItem("refreshToken");
+    
+    if (!currentRefreshToken) {
+      console.log("No refresh token available");
+      logout();
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:8080/api/auth/refreshToken", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          refreshToken: currentRefreshToken,
+        }),
+      });
+
+      if (!response.ok) {
+        localStorage.removeItem("refreshToken");
+        throw new Error("Failed to refresh token");
+      }
+
+      const data: LoginResponse = await response.json();
+      
+      // Update tokens
+      setAuthToken(data.token);
+      setRefreshToken(data.refreshToken);
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("refreshToken", data.refreshToken);
+      
+      const decodedUser = decodeToken(data.token);
+      setUser(decodedUser);
+      
+      console.log("Token refreshed successfully");
+    } catch (error) {
+      console.error("Error refreshing token:", error);
+      logout();
+    }
+  }, []);
 
   // Handle token changes
   useEffect(() => {
@@ -80,40 +148,61 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   }, [authToken]);
 
   // Verify token periodically
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      const verifyToken = async () => {
-        try {
-          // await checkAuth();
-          // Token is valid, you can optionally update state here
-        } catch (error) {
-          // Token is invalid or there was an error
-          localStorage.removeItem("token");
-          setAuthToken(null);
-          setUser(null);
-          console.error("Authentication failed:", error);
-        }
-      };
+   useEffect(() => {
+    const checkAndRefreshToken = async () => {
+      const token = localStorage.getItem("token");
+      
+      if (!token) return;
 
-      // Only verify if there's a token
-      if (localStorage.getItem("token")) {
-        verifyToken();
+      if (isTokenExpired(token)) {
+        console.log("Token is expired or about to expire, refreshing...");
+        await refreshAccessToken();
       }
-    }, 2000);
+    };
 
-    // Cleanup timeout on unmount
-    return () => clearTimeout(timeoutId);
-  }, []); // Empty dependency array - runs once on mount
+    // Check immediately on mount
+    checkAndRefreshToken();
+
+    // Check every 5 minutes
+    const intervalId = setInterval(checkAndRefreshToken, 1 * 60 * 1000);
+
+    return () => clearInterval(intervalId);
+  }, [refreshAccessToken]);
+
+  const logoutRequest = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    
+    try {
+      const response = await fetch("http://localhost:8080/api/auth/logout", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      
+      if (response.ok) {
+        console.log("Logout successful on server");
+      }
+    } catch (error) {
+      console.error("Error during logout request:", error);
+    }
+  };  
 
   const login = (token: string) => {
     setAuthToken(token);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await logoutRequest();
+    localStorage.removeItem("refreshToken");
     localStorage.removeItem("token");
     setAuthToken(null);
-    window.location.reload();
+    // window.location.reload();
   };
+
+
 
   return (
     <AuthContext.Provider value={{ authToken, user, login, logout }}>
