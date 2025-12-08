@@ -65,9 +65,10 @@ export const updateEvent = async (eventId: number, data: Partial<EventCreateRequ
   return response.data;
 } 
 
-export const getAllEvents = async () => {
+export const getAllEvents = async (page: number, size: number) => {
 
   const response = await axios.get(`${urlLink}/event/all`, {  
+    params: { page, size },
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`, 
     },
