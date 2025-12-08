@@ -38,16 +38,15 @@ const MyBookingsPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
   const [selectedDateFilter, setSelectedDateFilter] = useState<string>('all');
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [bookingsData, setBookingData] = useState<BookingDetails[]>([]);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['bookings', user?.id],
-    queryFn: () => fetchAllEventsByUserId(Number(user?.id)),
-    enabled: !!user?.id,
-    retry: 1
+    queryKey: ['bookings', user?.id, selectedStatus],
+    queryFn: () => fetchAllEventsByUserId(Number(user?.id), selectedStatus ),
+    enabled:  !!user?.id && !!selectedStatus != null,
   });
 
   useEffect(() => {
@@ -137,7 +136,7 @@ const MyBookingsPage = () => {
         booking.event.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
         booking.bookingId.toString().includes(searchTerm.toLowerCase());
       
-      const matchesStatus = selectedStatus === 'all' || bookingStatus === selectedStatus;
+      // const matchesStatus = selectedStatus === 'ALL' || bookingStatus === selectedStatus;
       
       const eventDate = new Date(booking.event.date);
       const now = new Date();
@@ -149,7 +148,7 @@ const MyBookingsPage = () => {
         (selectedDateFilter === 'past' && bookingStatus === 'completed') ||
         (selectedDateFilter === 'month' && eventDate >= now && eventDate <= nextMonth);
 
-      return matchesSearch && matchesStatus && matchesDate;
+      return matchesSearch && matchesDate;
     });
   };
 
@@ -254,10 +253,9 @@ const MyBookingsPage = () => {
                 onChange={(e) => setSelectedStatus(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E3A5F] focus:border-transparent"
               >
-                <option value="all">All Status</option>
-                <option value="upcoming">Upcoming</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
+                <option value="ALL">All Status</option>
+                <option value="SUCCESS">Completed</option>
+                <option value="CANCEL">Cancelled</option>
               </select>
 
               {/* Date Filter */}

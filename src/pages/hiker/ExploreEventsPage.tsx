@@ -3,7 +3,22 @@ import { useQuery } from '@tanstack/react-query';
 import { getAllEvents } from '../../api/services/Event';
 import { Search, Filter, MapPin, Calendar, Users, Star, Clock, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Pagination } from '../../components/common/Pagination';
 
+
+// interface PaginationMetadata {
+//   currentPage: number;
+//   totalPages: number;
+//   pageSize: number;
+//   totalElements: number;
+//   hasNext: boolean;
+//   hasPrevious: boolean;
+// }
+
+// interface PaginatedResponse<T> {
+//   data: T[];
+//   pagination: PaginationMetadata;
+// }
 interface Event {
   id: number;
   title: string;
@@ -14,7 +29,7 @@ interface Event {
   difficultyLevel: 'EASY' | 'MODERATE' | 'DIFFICULT' | 'EXTREME';
   price: number;
   maxParticipants: number;
-  currentParticipants: number;
+  participantCount: number;
   bannerImageUrl: string;
   meetingPoint: string;
   meetingTime: string;
@@ -45,131 +60,17 @@ const ExploreEventsPage = () => {
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [favorites, setFavorites] = useState<number[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
 
   const { data: events = [], isLoading, error } = useQuery({
-    queryKey: ['allEvents'],
-    queryFn: getAllEvents,
+    queryKey: ['allEvents', currentPage],
+    queryFn: () => getAllEvents(currentPage, 1),
   });
 
-  // Mock data for demonstration
-  const mockEvents: Event[] = [
-    {
-      id: 1,
-      title: 'Sunrise Mountain Trek',
-      description: 'Experience the breathtaking sunrise from the peak of Mount Serenity. This guided trek takes you through lush forests and offers panoramic views.',
-      location: 'Mount Serenity, Alpine Range',
-      date: '2024-06-15',
-      durationDays: 2,
-      difficultyLevel: 'MODERATE',
-      price: 129,
-      maxParticipants: 20,
-      currentParticipants: 15,
-      bannerImageUrl: 'https://images.unsplash.com/photo-1551632811-561732d1e306?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-      meetingPoint: 'Alpine Base Camp Parking Lot',
-      meetingTime: '05:30 AM',
-      contactPerson: 'Sarah Johnson',
-      contactEmail: 'sarah@alpineadventures.com',
-      includedServices: ['Professional Guide', 'Safety Equipment', 'First Aid Kit', 'Snacks & Water'],
-      requirements: ['Hiking boots', 'Waterproof jacket', '2L water minimum'],
-      status: 'APPROVED',
-      organizer: {
-        id: 1,
-        name: 'Alpine Adventures',
-        rating: 4.8,
-        totalEvents: 24
-      },
-      rating: 4.7,
-      reviewCount: 128,
-      isFeatured: true
-    },
-    {
-      id: 2,
-      title: 'Forest Valley Exploration',
-      description: 'Discover hidden waterfalls and ancient forests in this guided tour through Green Valley National Park.',
-      location: 'Green Valley National Park',
-      date: '2024-07-20',
-      durationDays: 1,
-      difficultyLevel: 'EASY',
-      price: 79,
-      maxParticipants: 15,
-      currentParticipants: 8,
-      bannerImageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-      meetingPoint: 'National Park Visitor Center',
-      meetingTime: '08:00 AM',
-      contactPerson: 'Mike Wilson',
-      contactEmail: 'mike@foresttours.com',
-      includedServices: ['Professional Guide', 'Lunch', 'Photography Service'],
-      requirements: ['Comfortable shoes', 'Camera', 'Water bottle'],
-      status: 'APPROVED',
-      organizer: {
-        id: 2,
-        name: 'Forest Tours',
-        rating: 4.6,
-        totalEvents: 18
-      },
-      rating: 4.5,
-      reviewCount: 89
-    },
-    {
-      id: 3,
-      title: 'Advanced Rock Climbing',
-      description: 'Challenging rock climbing experience for advanced adventurers on Granite Peak.',
-      location: 'Granite Peak',
-      date: '2024-08-10',
-      durationDays: 3,
-      difficultyLevel: 'EXTREME',
-      price: 299,
-      maxParticipants: 8,
-      currentParticipants: 3,
-      bannerImageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-      meetingPoint: 'Climbing Gear Shop',
-      meetingTime: '06:00 AM',
-      contactPerson: 'Alex Chen',
-      contactEmail: 'alex@climbexperts.com',
-      includedServices: ['Expert Guide', 'All Equipment', 'Accommodation', 'Meals'],
-      requirements: ['Climbing experience', 'Physical fitness certificate'],
-      status: 'APPROVED',
-      organizer: {
-        id: 3,
-        name: 'Climb Experts',
-        rating: 4.9,
-        totalEvents: 12
-      },
-      rating: 4.8,
-      reviewCount: 56,
-      isFeatured: true
-    },
-    {
-      id: 4,
-      title: 'Coastal Cliff Walk',
-      description: 'Scenic coastal walk along dramatic cliffs with ocean views and wildlife spotting.',
-      location: 'Ocean View Cliffs',
-      date: '2024-06-08',
-      durationDays: 1,
-      difficultyLevel: 'EASY',
-      price: 65,
-      maxParticipants: 25,
-      currentParticipants: 18,
-      bannerImageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-      meetingPoint: 'Coastal Visitor Center',
-      meetingTime: '09:00 AM',
-      contactPerson: 'Emma Davis',
-      contactEmail: 'emma@coastalwalks.com',
-      includedServices: ['Guide', 'Binoculars', 'Light Refreshments'],
-      requirements: ['Comfortable walking shoes', 'Sun protection'],
-      status: 'APPROVED',
-      organizer: {
-        id: 4,
-        name: 'Coastal Walks',
-        rating: 4.7,
-        totalEvents: 31
-      },
-      rating: 4.6,
-      reviewCount: 203
-    }
-  ];
 
-  const eventsData = events.length > 0 ? events : mockEvents;
+
+  const eventsData = events.data || [];
+  const pagination = events?.pagination;
 
   // Filter and sort events
   const filteredEvents = eventsData
@@ -199,7 +100,7 @@ const ExploreEventsPage = () => {
         case 'rating':
           return b.rating - a.rating;
         case 'participants':
-          return b.currentParticipants - a.currentParticipants;
+          return b.participantCount - a.participantCount;
         case 'latest':
         default:
           return new Date(b.date).getTime() - new Date(a.date).getTime();
@@ -495,7 +396,7 @@ const ExploreEventsPage = () => {
                       </div>
                       <div className="flex items-center gap-1">
                         <Users className="w-4 h-4" />
-                        {event.currentParticipants}/{event.maxParticipants} spots
+                        {event.participantCount}/{event.maxParticipants} spots
                       </div>
                     </div>
                   </div>
@@ -505,11 +406,11 @@ const ExploreEventsPage = () => {
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(event.difficultyLevel)}`}>
                         {getDifficultyText(event.difficultyLevel)}
                       </span>
-                      <div className="flex items-center gap-1">
+                      {/* <div className="flex items-center gap-1">
                         <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                        <span className="text-sm font-medium text-gray-700">{event.rating}</span>
-                        <span className="text-sm text-gray-500">({event.reviewCount})</span>
-                      </div>
+                        <span className="text-sm font-medium text-gray-700">4.5</span>
+                        <span className="text-sm text-gray-500">200</span>
+                      </div> */}
                     </div>
                     <button onClick={() => handleEventView(event.id)} className="px-4 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4a7a] transition-colors duration-200 font-medium text-sm">
                       View Details
@@ -580,12 +481,12 @@ const ExploreEventsPage = () => {
                       </div>
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <Users className="w-4 h-4" />
-                        <span>{event.currentParticipants}/{event.maxParticipants} spots</span>
+                        <span>{event.participantCount}/{event.maxParticipants} spots {event.maxParticipants - event.participantCount} left</span>
                       </div>
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
+                      {/* <div className="flex items-center gap-4">
                         <div className="flex items-center gap-1">
                           <Star className="w-4 h-4 text-yellow-400 fill-current" />
                           <span className="font-medium text-gray-700">{event.rating}</span>
@@ -594,7 +495,7 @@ const ExploreEventsPage = () => {
                         <div className="text-sm text-gray-600">
                           By <span className="font-medium">{event.organizer?.name}</span>
                         </div>
-                      </div>
+                      </div> */}
                       <div className="flex items-center gap-4">
                         <span className="text-2xl font-bold text-[#1E3A5F]">${event.price}</span>
                         <button onClick={() => handleEventView(event.id)} className="px-6 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4a7a] transition-colors duration-200 font-medium">
@@ -632,6 +533,16 @@ const ExploreEventsPage = () => {
             </button>
           </div>
         )}
+
+
+        
+         {pagination && (
+        <Pagination 
+          pagination={pagination} 
+          onPageChange={setCurrentPage}
+          itemName="events"
+        />
+      )}
       </div>
     </div>
   );

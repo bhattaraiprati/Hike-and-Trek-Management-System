@@ -65,9 +65,10 @@ export const updateEvent = async (eventId: number, data: Partial<EventCreateRequ
   return response.data;
 } 
 
-export const getAllEvents = async () => {
+export const getAllEvents = async (page: number, size: number) => {
 
   const response = await axios.get(`${urlLink}/event/all`, {  
+    params: { page, size },
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`, 
     },
@@ -104,8 +105,9 @@ export const fetchBookingDetails = async (id: number): Promise<EventRegistration
   return response.data;
 };
 
-export const fetchAllEventsByUserId = async (userId: number) => {
+export const fetchAllEventsByUserId = async (userId: number, status: string) => {
   const response = await axios.get(`${urlLink}/hiker/registration/events/${userId}`, {
+    params: { status },
     headers: {  
       Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
@@ -114,7 +116,7 @@ export const fetchAllEventsByUserId = async (userId: number) => {
 }
 
 export const getUpcommingEvents = async (id:Number) => {
-  const response = await axios.get(`${urlLink}/event/upcoming`,{
+  const response = await axios.get(`${urlLink}/hiker/registration/upcoming`,{
     params: { id },
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
