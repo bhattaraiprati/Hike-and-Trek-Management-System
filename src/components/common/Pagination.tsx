@@ -61,7 +61,7 @@ export const Pagination: React.FC<PaginationProps> = ({
   };
 
   // Don't render for only one page
-  if (pagination.totalPages <= 1) return null;
+  if (pagination.totalPages <= 0) return null;
 
   return (
     <div className="mt-8 flex flex-col items-center gap-4">

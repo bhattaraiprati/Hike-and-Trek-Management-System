@@ -9,6 +9,8 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { getProfileUrl, uploadImage } from '../../api/services/authApi';
 import { useQuery } from '@tanstack/react-query';
+import { fetchAllEventsByUserId, getUpcommingEvents } from '../../api/services/Event';
+import { useNavigate } from 'react-router-dom';
 
 
 interface UpcomingEvent {
@@ -23,17 +25,52 @@ interface UpcomingEvent {
   bannerImageUrl: string;
 }
 
-interface EventHistory {
+export type BookingStatus = 'ACTIVE' | 'CANCELLED' | 'COMPLETED';
+export type DifficultyLevel = 'EASY' | 'MODERATE' | 'DIFFICULT' | 'EXTREME';
+export type PaymentMethod = 'esewa' | 'khalti' | 'cash' | 'bank_transfer';
+export type PaymentStatus = 'success' | 'pending' | 'failed' | 'refunded';
+
+// Nested interfaces
+export interface BookingOrganizer {
+  name: string;
+}
+
+export interface BookingEvent {
   id: number;
   title: string;
-  date: string;
   location: string;
-  organizer: string;
-  rating: number;
-  reviewSubmitted: boolean;
-  difficulty: 'Easy' | 'Moderate' | 'Difficult' | 'Expert';
+  date: string; // ISO date string "2025-11-30"
+  durationDays: number;
+  status: BookingStatus;
+  difficultyLevel: DifficultyLevel;
+  price: number;
   bannerImageUrl: string;
+  meetingPoint: string;
+  meetingTime: string; // Time string "06:00:00"
+  organizer: BookingOrganizer;
 }
+
+export interface BookingParticipant {
+  count: number;
+}
+
+export interface BookingPayment {
+  method: PaymentMethod;
+  amount: number;
+  status: PaymentStatus;
+}
+
+// Main booking interface
+export interface BookingResponse {
+  bookingId: number;
+  bookingDate: string; // ISO datetime string
+  event: BookingEvent;
+  participants: BookingParticipant[];
+  payment: BookingPayment;
+}
+
+// For API response with array
+export type BookingListResponse = BookingResponse[];
 
 interface FavoriteEvent {
   id: number;
@@ -60,79 +97,8 @@ const HikerProfilePage = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { user } = useAuth();
     const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'favorites' | 'payment'>('overview');
-     const [preview, setPreview] = useState<String | null>(null);
-
-  const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([
-    {
-      id: 1,
-      title: 'Sunrise Mountain Trek',
-      date: '2024-06-15',
-      location: 'Mount Serenity',
-      organizer: 'TrekNepal Adventures',
-      meetingTime: '05:30 AM',
-      participants: 2,
-      status: 'confirmed',
-      bannerImageUrl: 'https://images.unsplash.com/photo-1551632811-561732d1e306?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'
-    },
-    {
-      id: 2,
-      title: 'Forest Valley Exploration',
-      date: '2024-07-20',
-      location: 'Green Valley National Park',
-      organizer: 'Forest Tours',
-      meetingTime: '08:00 AM',
-      participants: 1,
-      status: 'confirmed',
-      bannerImageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'
-    },
-    {
-      id: 3,
-      title: 'Advanced Rock Climbing',
-      date: '2024-08-10',
-      location: 'Granite Peak',
-      organizer: 'Climb Experts',
-      meetingTime: '06:00 AM',
-      participants: 1,
-      status: 'pending',
-      bannerImageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'
-    }
-  ]);
-
-  const [eventHistory, setEventHistory] = useState<EventHistory[]>([
-    {
-      id: 1,
-      title: 'Coastal Cliff Walk',
-      date: '2024-04-15',
-      location: 'Ocean View Cliffs',
-      organizer: 'Coastal Walks',
-      rating: 4.5,
-      reviewSubmitted: true,
-      difficulty: 'Easy',
-      bannerImageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'
-    },
-    {
-      id: 2,
-      title: 'Waterfall Discovery',
-      date: '2024-03-20',
-      location: 'Hidden Falls',
-      organizer: 'Nature Explorers',
-      rating: 4.8,
-      reviewSubmitted: true,
-      difficulty: 'Moderate',
-      bannerImageUrl: 'https://images.unsplash.com/photo-1551632811-561732d1e306?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'
-    },
-    {
-      id: 3,
-      title: 'Night Sky Camping',
-      date: '2024-02-10',
-      location: 'Starry Meadows',
-      organizer: 'Starry Nights',
-      rating: 4.9,
-      reviewSubmitted: false,
-      difficulty: 'Easy',
-      bannerImageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'
-    }
-  ]);
+    const [preview, setPreview] = useState<string | null>(null);
+    const navigate = useNavigate();
 
   const [favoriteEvents, setFavoriteEvents] = useState<FavoriteEvent[]>([
     {
@@ -220,6 +186,30 @@ const HikerProfilePage = () => {
    
   })
 
+  const {data: upcomingEventsData} = useQuery({
+    queryKey: ["upcomingEvents", user?.id],
+    queryFn: () => getUpcommingEvents(Number(user?.id || 0) ),
+    enabled: !!user?.id,
+    
+  })
+
+  const {data: EventHistoryData} = useQuery({
+    queryKey: ["eventHistory", user?.id],
+    queryFn: () => fetchAllEventsByUserId(Number(user?.id || 0), status='ALL' ),
+    enabled: !!user?.id,
+    
+  })
+
+  const handleEventView = (eventId: number) => {
+    navigate(`/hiker-dashboard/booking-confirmation/${eventId}`);
+  };
+
+  const handleUpcomingEventView = () => {
+    navigate(`/hiker-dashboard/events`);
+  };
+
+  const upcomingEvents: UpcomingEvent[] = upcomingEventsData || [];
+  const eventHistory: BookingResponse[] = EventHistoryData || [];
   const displayImage = preview || profileImageUrl ;
 
   const handleImageUpload = async (file: File, type: string) => {
@@ -493,7 +483,7 @@ const HikerProfilePage = () => {
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
                   <div className="flex justify-between items-center mb-6">
                     <h3 className="text-lg font-semibold text-[#1E3A5F]">Upcoming Events ({upcomingEvents.length})</h3>
-                    <button className="text-[#1E3A5F] hover:text-[#2a4a7a] text-sm font-medium flex items-center gap-1">
+                    <button onClick={() =>handleUpcomingEventView()} className="text-[#1E3A5F] hover:text-[#2a4a7a] text-sm font-medium flex items-center gap-1">
                       View All
                       <ChevronRight className="w-4 h-4" />
                     </button>
@@ -532,7 +522,7 @@ const HikerProfilePage = () => {
                               {event.meetingTime}
                             </div>
                           </div>
-                          <button className="w-full px-4 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4a7a] transition-colors duration-200 text-sm">
+                          <button onClick={() => handleEventView(event.id)} className="w-full px-4 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4a7a] transition-colors duration-200 text-sm">
                             View Details
                           </button>
                         </div>
@@ -563,35 +553,35 @@ const HikerProfilePage = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
-                        {eventHistory.map((event) => (
-                          <tr key={event.id} className="hover:bg-gray-50">
+                        {eventHistory.map((events) => (
+                          <tr key={events.bookingId} className="hover:bg-gray-50">
                             <td className="px-4 py-4">
                               <div className="flex items-center gap-3">
                                 <img
-                                  src={event.bannerImageUrl}
-                                  alt={event.title}
+                                  src={events.event.bannerImageUrl}
+                                  alt={events.event.title}
                                   className="w-12 h-12 rounded-lg object-cover"
                                 />
                                 <div>
-                                  <div className="font-medium text-gray-900">{event.title}</div>
-                                  <div className="text-sm text-gray-500">{event.organizer}</div>
+                                  <div className="font-medium text-gray-900">{events.event.title}</div>
+                                  <div className="text-sm text-gray-500">{events.event.organizer.name}</div>
                                 </div>
                               </div>
                             </td>
                             <td className="px-4 py-4">
                               <div className="text-sm text-gray-900">
-                                {new Date(event.date).toLocaleDateString()}
+                                {new Date(events.event.date).toLocaleDateString()}
                               </div>
                             </td>
                             <td className="px-4 py-4">
                               <div className="flex items-center gap-1">
                                 <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                                <span className="font-medium">{event.rating}</span>
+                                {/* <span className="font-medium">{events.rating}</span> */}
                               </div>
                             </td>
                             <td className="px-4 py-4">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(event.difficulty)}`}>
-                                {event.difficulty}
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(events.event.difficultyLevel)}`}>
+                                {events.event.difficultyLevel}
                               </span>
                             </td>
                             <td className="px-4 py-4">
@@ -599,11 +589,11 @@ const HikerProfilePage = () => {
                                 <button className="text-[#1E3A5F] hover:text-[#2a4a7a] text-sm">
                                   View
                                 </button>
-                                {!event.reviewSubmitted && (
+                                {/* {!events.reviewSubmitted && (
                                   <button className="text-green-600 hover:text-green-800 text-sm">
                                     Write Review
                                   </button>
-                                )}
+                                )} */}
                               </div>
                             </td>
                           </tr>

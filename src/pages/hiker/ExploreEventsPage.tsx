@@ -29,7 +29,7 @@ interface Event {
   difficultyLevel: 'EASY' | 'MODERATE' | 'DIFFICULT' | 'EXTREME';
   price: number;
   maxParticipants: number;
-  currentParticipants: number;
+  participantCount: number;
   bannerImageUrl: string;
   meetingPoint: string;
   meetingTime: string;
@@ -64,7 +64,7 @@ const ExploreEventsPage = () => {
 
   const { data: events = [], isLoading, error } = useQuery({
     queryKey: ['allEvents', currentPage],
-    queryFn: () => getAllEvents(currentPage, 10),
+    queryFn: () => getAllEvents(currentPage, 1),
   });
 
 
@@ -100,7 +100,7 @@ const ExploreEventsPage = () => {
         case 'rating':
           return b.rating - a.rating;
         case 'participants':
-          return b.currentParticipants - a.currentParticipants;
+          return b.participantCount - a.participantCount;
         case 'latest':
         default:
           return new Date(b.date).getTime() - new Date(a.date).getTime();
@@ -396,7 +396,7 @@ const ExploreEventsPage = () => {
                       </div>
                       <div className="flex items-center gap-1">
                         <Users className="w-4 h-4" />
-                        {event.currentParticipants}/{event.maxParticipants} spots
+                        {event.participantCount}/{event.maxParticipants} spots
                       </div>
                     </div>
                   </div>
@@ -406,11 +406,11 @@ const ExploreEventsPage = () => {
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(event.difficultyLevel)}`}>
                         {getDifficultyText(event.difficultyLevel)}
                       </span>
-                      <div className="flex items-center gap-1">
+                      {/* <div className="flex items-center gap-1">
                         <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                        <span className="text-sm font-medium text-gray-700">{event.rating}</span>
-                        <span className="text-sm text-gray-500">({event.reviewCount})</span>
-                      </div>
+                        <span className="text-sm font-medium text-gray-700">4.5</span>
+                        <span className="text-sm text-gray-500">200</span>
+                      </div> */}
                     </div>
                     <button onClick={() => handleEventView(event.id)} className="px-4 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4a7a] transition-colors duration-200 font-medium text-sm">
                       View Details
@@ -481,12 +481,12 @@ const ExploreEventsPage = () => {
                       </div>
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <Users className="w-4 h-4" />
-                        <span>{event.currentParticipants}/{event.maxParticipants} spots</span>
+                        <span>{event.participantCount}/{event.maxParticipants} spots {event.maxParticipants - event.participantCount} left</span>
                       </div>
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
+                      {/* <div className="flex items-center gap-4">
                         <div className="flex items-center gap-1">
                           <Star className="w-4 h-4 text-yellow-400 fill-current" />
                           <span className="font-medium text-gray-700">{event.rating}</span>
@@ -495,7 +495,7 @@ const ExploreEventsPage = () => {
                         <div className="text-sm text-gray-600">
                           By <span className="font-medium">{event.organizer?.name}</span>
                         </div>
-                      </div>
+                      </div> */}
                       <div className="flex items-center gap-4">
                         <span className="text-2xl font-bold text-[#1E3A5F]">${event.price}</span>
                         <button onClick={() => handleEventView(event.id)} className="px-6 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4a7a] transition-colors duration-200 font-medium">
