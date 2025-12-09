@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import EditEventModal from '../../components/organizer/popup/EditEventModal';
 import { SuccesfulMessageToast } from '../../utils/Toastify.util';
+import { useNavigate } from 'react-router-dom';
 
 interface Event {
   id: number;
@@ -38,9 +39,10 @@ const OrganizerEventsPage = () => {
   const organizerId = user?.id;
   const queryClient = useQueryClient();
 
+  const  navigate = useNavigate();
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
 
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  // const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [filter, setFilter] = useState<'all' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED' | 'COMPLETED'>('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -62,9 +64,13 @@ const OrganizerEventsPage = () => {
 
   const { data: events = [], isLoading, error } = useQuery({
     queryKey: ['organizerEvents', organizerId],
-    queryFn: () => getOrganizerEvents(organizerId!),
+    queryFn: () => getOrganizerEvents(Number(organizerId!)),
     enabled: !!organizerId,
   });
+
+  const handleEventView = (eventId: number) => {
+    navigate(`/dashboard/events/${eventId}`);
+  };
 
   // Transform API data to match component expectations
   const transformedEvents: Event[] = events.map((event: any) => ({
@@ -312,7 +318,7 @@ const OrganizerEventsPage = () => {
                     </span>
                     <div className="flex gap-2">
                       <button 
-                        onClick={() => setSelectedEvent(event)}
+                        onClick={() => handleEventView(event.id)}
                         className="text-[#1E3A5F] hover:text-[#2a4a7a] transition-colors duration-200"
                       >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -396,7 +402,7 @@ const OrganizerEventsPage = () => {
                               Edit
                             </button>
                         <button 
-                          onClick={() => setSelectedEvent(event)}
+                          onClick={() => handleEventView(event.id)}
                           className="text-gray-600 hover:text-gray-800 transition-colors duration-200"
                         >
                           View
@@ -425,131 +431,7 @@ const OrganizerEventsPage = () => {
         )}
       </div>
 
-      {/* Event Detail Modal */}
-      {selectedEvent && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-6">
-                <h2 className="text-2xl font-bold text-[#1E3A5F]">{selectedEvent.title}</h2>
-                <button 
-                  onClick={() => setSelectedEvent(null)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Event Details */}
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-lg font-semibold text-[#1E3A5F] mb-3">Event Details</h3>
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Status:</span>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(selectedEvent.status)}`}>
-                          {formatStatus(selectedEvent.status)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Date:</span>
-                        <span className="font-medium">{new Date(selectedEvent.date).toLocaleDateString()}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Location:</span>
-                        <span className="font-medium text-right">{selectedEvent.location}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Difficulty:</span>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(selectedEvent.difficultyLevel)}`}>
-                          {formatDifficulty(selectedEvent.difficultyLevel)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Price:</span>
-                        <span className="font-medium text-[#1E3A5F]">${selectedEvent.price}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Participants */}
-                  <div>
-                    <h3 className="text-lg font-semibold text-[#1E3A5F] mb-3">Participants ({selectedEvent.registeredParticipants?.length || 0})</h3>
-                    <div className="space-y-2">
-                      {selectedEvent.registeredParticipants && selectedEvent.registeredParticipants.length > 0 ? (
-                        selectedEvent.registeredParticipants.map((participant) => (
-                          <div key={participant.id} className="flex justify-between items-center bg-gray-50 px-3 py-2 rounded-lg">
-                            <div>
-                              <div className="font-medium">{participant.name}</div>
-                              <div className="text-sm text-gray-500">{participant.email}</div>
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {new Date(participant.registeredAt).toLocaleDateString()}
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="text-center text-gray-500 py-4">
-                          No participants yet
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Quick Actions & Stats */}
-                <div className="space-y-6">
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <h3 className="text-lg font-semibold text-[#1E3A5F] mb-3">Quick Actions</h3>
-                    <div className="grid grid-cols-2 gap-3">
-                       <button 
-                        onClick={() => setEditingEvent(selectedEvent)}
-                        className="bg-white border border-gray-300 rounded-lg p-3 text-sm font-medium hover:bg-gray-50 transition-colors duration-200"
-                      >
-                        Edit Event
-                      </button>
-                      
-                      <button className="bg-white border border-gray-300 rounded-lg p-3 text-sm font-medium hover:bg-gray-50 transition-colors duration-200">
-                        Send Email
-                      </button>
-                      <button className="bg-white border border-gray-300 rounded-lg p-3 text-sm font-medium hover:bg-gray-50 transition-colors duration-200">
-                        Export List
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <h3 className="text-lg font-semibold text-[#1E3A5F] mb-3">Event Statistics</h3>
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Registration Rate:</span>
-                        <span className="font-medium">
-                          {(((selectedEvent.currentParticipants || 0) / selectedEvent.maxParticipants) * 100).toFixed(1)}%
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Total Revenue:</span>
-                        <span className="font-medium text-[#1E3A5F]">
-                          ${selectedEvent.price * (selectedEvent.currentParticipants || 0)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Spots Available:</span>
-                        <span className="font-medium">
-                          {selectedEvent.maxParticipants - (selectedEvent.currentParticipants || 0)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      
       <EditEventModal
         event={editingEvent!}
         isOpen={!!editingEvent}

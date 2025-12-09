@@ -179,6 +179,10 @@ const HikerProfilePage = () => {
     }
   ]);
 
+  if(!user){
+    setActivities([]);
+  }
+
   const {data: profileImageUrl} = useQuery({
     queryKey: ["profileUrl", user?.id],
     queryFn: () => getProfileUrl(Number(user?.id || 0) ),
@@ -671,6 +675,67 @@ const HikerProfilePage = () => {
                 </div>
               </div>
             )}
+
+            {/* Payment History Tab */}
+            {activeTab === 'payment' && (
+              <div className="space-y-8">
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-lg font-semibold text-[#1E3A5F]">Payment History</h3>
+                    <button className="text-[#1E3A5F] hover:text-[#2a4a7a] text-sm font-medium"> 
+                      View All
+                    </button>
+                  </div>
+                   <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Booking ID</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Event</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th> 
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">  
+                        {eventHistory.map((booking) => (
+                          <tr key={booking.bookingId} className="hover:bg-gray-50">
+                            <td className="px-4 py-4 text-sm text-gray-900">{booking.bookingId}</td>
+                            <td className="px-4 py-4">
+                              <div className="flex items-center gap-3">
+                                <img 
+                                  src={booking.event.bannerImageUrl}
+                                  alt={booking.event.title}
+                                  className="w-12 h-12 rounded-lg object-cover"
+                                />
+                                <div>
+                                  <div className="font-medium text-gray-900">{booking.event.title}</div>
+                                  <div className="text-sm text-gray-500">{booking.event.organizer.name}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-4 text-sm text-gray-900">
+                              {new Date(booking.bookingDate).toLocaleDateString()}
+                            </td>
+                            <td className="px-4 py-4 text-sm text-gray-900">${booking.payment.amount.toFixed(2)}</td>
+                            <td className="px-4 py-4">
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                booking.payment.status === 'success' ? 'bg-green-100 text-green-800' :
+                                booking.payment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-red-100 text-red-800'
+                              }`}>
+                                {booking.payment.status}
+                              </span>
+                            </td>
+                          </tr> 
+                        ))}
+                      </tbody>
+                    </table>
+
+                  </div>
+                </div>
+              </div>
+              )}
           </div>
         </div>
       </div>

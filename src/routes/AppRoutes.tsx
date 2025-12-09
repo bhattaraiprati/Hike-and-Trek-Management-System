@@ -16,6 +16,8 @@ import BookingCheckoutPage from "../pages/hiker/BookingCheckoutPage";
 import BookingConfirmationPage from "../pages/hiker/BookingConfirmationPage";
 import MyBookingsPage from "../pages/hiker/MyBookingsPage";
 import HikerProfilePage from "../pages/hiker/HikerProfilePage";
+import OrganizerParticipantsPage from "../pages/organizer/OrganizerParticipantsPage";
+import OrganizerEventDetailsPage from "../pages/organizer/OrganizerEventDetailsPage ";
 
 const AppRoutes = () => {
   return (
@@ -33,8 +35,9 @@ const AppRoutes = () => {
           <Route index element={<OrganizerDashboard />} />
           
           <Route path="events" element={<OrganizerEventsPage />} />
+          <Route path="events/:eventId" element={<OrganizerEventDetailsPage />} />
           <Route path="register" element={<CreateEventPage />} />
-          <Route path="participants" element={<div>Participants Page</div>} />
+          {/* <Route path="participants" element={<OrganizerEventDetailsPage />} /> */}
           <Route path="messages" element={<div>Messages Page</div>} />
           <Route path="profile" element={<div>Profile Page</div>} />
           <Route path="settings" element={<div>Settings Page</div>} />
