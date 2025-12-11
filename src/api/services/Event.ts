@@ -124,3 +124,12 @@ export const getUpcommingEvents = async (id:Number) => {
   });
   return response.data; 
 }
+
+export const getEventDetails = async (eventId: number) => {
+  const response = await axios.get(`${urlLink}/organizer/event/allEventsDetails/${eventId}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+  return response.data;
+}

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getAllEvents } from '../../api/services/Event';
-import { Search, Filter, MapPin, Calendar, Users, Star, Clock, Heart } from 'lucide-react';
+import { Search, Filter, MapPin, Calendar, Users, Clock, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Pagination } from '../../components/common/Pagination';
 
@@ -64,7 +64,7 @@ const ExploreEventsPage = () => {
 
   const { data: events = [], isLoading, error } = useQuery({
     queryKey: ['allEvents', currentPage],
-    queryFn: () => getAllEvents(currentPage, 1),
+    queryFn: () => getAllEvents(currentPage, 10),
   });
 
 
@@ -396,7 +396,8 @@ const ExploreEventsPage = () => {
                       </div>
                       <div className="flex items-center gap-1">
                         <Users className="w-4 h-4" />
-                        {event.participantCount}/{event.maxParticipants} spots
+                        {event.participantCount}/{event.maxParticipants} spots <span></span>
+                        <span className='text-red-600 text-sm'> {event.maxParticipants - event.participantCount} left</span>
                       </div>
                     </div>
                   </div>
@@ -481,7 +482,7 @@ const ExploreEventsPage = () => {
                       </div>
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <Users className="w-4 h-4" />
-                        <span>{event.participantCount}/{event.maxParticipants} spots {event.maxParticipants - event.participantCount} left</span>
+                        <span>{event.participantCount}/{event.maxParticipants} spots {event.maxParticipants - event.participantCount} <span className='text-red-600 font-bold text-sm'>left</span></span>
                       </div>
                     </div>
 

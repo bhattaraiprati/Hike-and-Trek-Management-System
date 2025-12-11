@@ -39,7 +39,6 @@ const MyBookingsPage = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
-  const [selectedDateFilter, setSelectedDateFilter] = useState<string>('all');
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [bookingsData, setBookingData] = useState<BookingDetails[]>([]);
 
@@ -56,16 +55,16 @@ const MyBookingsPage = () => {
   }, [data]);
 
   // Helper function to determine booking status from event date
-  const getBookingStatus = (eventDate: string): 'upcoming' | 'completed' | 'cancelled' | 'pending' => {
+  const getBookingStatus = (eventDate: string): 'ACTIVE' | 'SUCCESS' | 'CANCEL' => {
     const now = new Date();
     const eventDateTime = new Date(eventDate);
     
     // Check if event is in the past
     if (eventDateTime < now) {
-      return 'completed';
+      return 'SUCCESS';
     }
     // Event is in the future
-    return 'upcoming';
+    return 'ACTIVE';
     
     // Note: In your API response, there's no direct "status" for booking
     // You might need to adjust this based on your actual business logic
@@ -129,7 +128,6 @@ const MyBookingsPage = () => {
 
   const filterBookings = () => {
     return bookingsData.filter(booking => {
-      const bookingStatus = getBookingStatus(booking.event.date);
       
       const matchesSearch = 
         booking.event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -138,17 +136,17 @@ const MyBookingsPage = () => {
       
       // const matchesStatus = selectedStatus === 'ALL' || bookingStatus === selectedStatus;
       
-      const eventDate = new Date(booking.event.date);
-      const now = new Date();
-      const nextMonth = new Date(now);
-      nextMonth.setMonth(now.getMonth() + 1);
+      // const eventDate = new Date(booking.event.date);
+      // const now = new Date();
+      // const nextMonth = new Date(now);
+      // nextMonth.setMonth(now.getMonth() + 1);
       
-      const matchesDate = selectedDateFilter === 'all' || 
-        (selectedDateFilter === 'upcoming' && bookingStatus === 'upcoming') ||
-        (selectedDateFilter === 'past' && bookingStatus === 'completed') ||
-        (selectedDateFilter === 'month' && eventDate >= now && eventDate <= nextMonth);
+      // const matchesDate = selectedDateFilter === 'all' || 
+      //   (selectedDateFilter === 'upcoming' && bookingStatus === 'upcoming') ||
+      //   (selectedDateFilter === 'past' && bookingStatus === 'completed') ||
+      //   (selectedDateFilter === 'month' && eventDate >= now && eventDate <= nextMonth);
 
-      return matchesSearch && matchesDate;
+      return matchesSearch ;
     });
   };
 
@@ -165,10 +163,10 @@ const MyBookingsPage = () => {
   // Calculate stats
   const stats = {
     total: bookingsData.length,
-    upcoming: bookingsData.filter(b => getBookingStatus(b.event.date) === 'upcoming').length,
-    completed: bookingsData.filter(b => getBookingStatus(b.event.date) === 'completed').length,
+    upcoming: bookingsData.filter(b => getBookingStatus(b.event.date) === 'ACTIVE').length,
+    completed: bookingsData.filter(b => getBookingStatus(b.event.date) === 'SUCCESS').length,
     cancelled: bookingsData.filter(b => b.payment.status?.toLowerCase() === 'refunded' || 
-                                       b.event.status?.toLowerCase() === 'cancelled').length
+                                       b.event.status?.toLowerCase() === 'CANCEL').length
   };
 
   if (isLoading) {
@@ -258,17 +256,7 @@ const MyBookingsPage = () => {
                 <option value="CANCEL">Cancelled</option>
               </select>
 
-              {/* Date Filter */}
-              <select
-                value={selectedDateFilter}
-                onChange={(e) => setSelectedDateFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E3A5F] focus:border-transparent"
-              >
-                <option value="all">All Dates</option>
-                <option value="upcoming">Upcoming Only</option>
-                <option value="past">Past Events</option>
-                <option value="month">Next 30 Days</option>
-              </select>
+              
 
               {/* View Toggle */}
               <div className="flex border border-gray-300 rounded-lg overflow-hidden">
@@ -389,7 +377,7 @@ const MyBookingsPage = () => {
                     </div>
 
                     {/* Review button for completed events */}
-                    {bookingStatus === 'completed' && (
+                    {bookingStatus === 'SUCCESS' && (
                       <div className="flex gap-0 mt-3">
                         <button
                           onClick={() => handleWriteReview(booking.bookingId)}
