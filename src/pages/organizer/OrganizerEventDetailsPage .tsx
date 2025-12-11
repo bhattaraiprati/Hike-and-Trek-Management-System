@@ -1,237 +1,56 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
-  Calendar, MapPin, Users,  
-  User,  Edit, Eye, Send, Star,
+  Calendar, MapPin, 
+    Edit, Eye, Send, Star,
   CheckCircle, AlertCircle, Download,  ArrowLeft,
-  BarChart,  Heart, CheckCheck,
+  ShieldOff,
+  Trash,
 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { getEventById } from '../../api/services/Event';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { getEventDetails, updateEvent } from '../../api/services/Event';
+import EditEventModal from '../../components/organizer/popup/EditEventModal';
+import { SuccesfulMessageToast } from '../../utils/Toastify.util';
+import { useAuth } from '../../context/AuthContext';
+import type { Event, EventDetails } from '../../types/eventTypes';
+import ViewParticipantsSlider from '../../components/organizer/popup/ViewParticipantsSlider';
 
-interface EventDetails {
-  id: number;
-  title: string;
-  description: string;
-  location: string;
-  date: string; // LocalDate
-  durationDays: number;
-  difficultyLevel: 'EASY' | 'MODERATE' | 'DIFFICULT' | 'EXTREME';
-  price: number;
-  maxParticipants: number;
-  meetingPoint: string;
-  meetingTime: string; // LocalTime
-  contactPerson: string;
-  contactEmail: string;
-  bannerImageUrl: string;
-  includedServices: string[];
-  requirements: string[];
-  status: 'ACTIVE' | 'INACTIVE' | 'CANCELLED' | 'COMPLETED';
-  createdAt: string; // LocalDateTime
-  updatedAt: string; // LocalDateTime
-  
-  // Statistics
-  currentParticipants: number;
-  registrationRate: number;
-  totalRevenue: number;
-  averageRating: number;
-  reviewCount: number;
-  
-  // Organizer info
-  organizer: {
-    id: number;
-    name: string;
-    email: string;
-    phone: string;
-    totalEvents: number;
-    rating: number;
-  };
-  
-  // Registrations
-  registrations: EventRegistration[];
-  
-  // Reviews
-  reviews: Review[];
-}
 
-interface EventRegistration {
-  id: number;
-  registrationDate: string;
-  user: {
-    id: number;
-    name: string;
-    email: string;
-  };
-  contact: string;
-  contactName: string;
-  email: string;
-  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
-  payment: {
-    id: number;
-    amount: number;
-    status: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REFUNDED';
-    method: string;
-  };
-  participants: EventParticipant[];
-}
 
-interface EventParticipant {
-  id: number;
-  name: string;
-  gender: 'MALE' | 'FEMALE' | 'OTHER';
-  nationality: string;
-  attendanceStatus: 'PENDING' | 'PRESENT' | 'ABSENT';
-}
-
-interface Review {
-  id: number;
-  user: {
-    name: string;
-    profileImage?: string;
-  };
-  rating: number;
-  comment: string;
-  createdAt: string;
-  likes: number;
-}
 
 const OrganizerEventDetailsPage = () => {
+  const { user } = useAuth();
   const { eventId } = useParams<{ eventId: string }>();
+  const organizerId = user?.id;
   const navigate = useNavigate();
-//   const [event, setEvent] = useState<EventDetails | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'participants' | 'reviews'>('overview');
-
-//   useEffect(() => {
-//     // Mock data - replace with API call
-//     const mockEvent: EventDetails = {
-//       id: 1,
-//       title: 'Sunrise Mountain Trek',
-//       description: 'Experience the breathtaking sunrise from the peak of Mount Serenity. This guided trek takes you through lush forests, rocky terrain, and offers panoramic views of the valley below. Perfect for nature lovers and photography enthusiasts.',
-//       location: 'Mount Serenity, Alpine Range',
-//       date: '2024-06-15',
-//       durationDays: 2,
-//       difficultyLevel: 'MODERATE',
-//       price: 129,
-//       maxParticipants: 20,
-//       meetingPoint: 'Alpine Base Camp Parking Lot',
-//       meetingTime: '05:30:00',
-//       contactPerson: 'Sarah Johnson',
-//       contactEmail: 'sarah@alpineadventures.com',
-//       bannerImageUrl: 'https://images.unsplash.com/photo-1551632811-561732d1e306?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80',
-//       includedServices: [
-//         'Professional Guide',
-//         'Safety Equipment',
-//         'First Aid Kit',
-//         'Snacks & Water',
-//         'Photography Service',
-//         'Certificate of Completion'
-//       ],
-//       requirements: [
-//         'Hiking boots',
-//         'Waterproof jacket',
-//         '2L water minimum',
-//         'Day backpack',
-//         'Physical fitness certificate',
-//         'ID proof'
-//       ],
-//       status: 'ACTIVE',
-//       createdAt: '2024-01-15T10:30:00',
-//       updatedAt: '2024-05-20T14:45:00',
-      
-//       // Statistics
-//       currentParticipants: 15,
-//       registrationRate: 75,
-//       totalRevenue: 1935,
-//       averageRating: 4.7,
-//       reviewCount: 24,
-      
-//       // Organizer info
-//       organizer: {
-//         id: 1,
-//         name: 'Alpine Adventures',
-//         email: 'info@alpineadventures.com',
-//         phone: '+977-9841234567',
-//         totalEvents: 24,
-//         rating: 4.8
-//       },
-      
-//       // Registrations
-//       registrations: [
-//         {
-//           id: 1,
-//           registrationDate: '2024-05-20T09:15:00',
-//           user: { id: 1, name: 'John Doe', email: 'john@example.com' },
-//           contact: '+977-9841234567',
-//           contactName: 'John Doe',
-//           email: 'john@example.com',
-//           status: 'CONFIRMED',
-//           payment: {
-//             id: 1,
-//             amount: 258,
-//             status: 'COMPLETED',
-//             method: 'eSewa'
-//           },
-//           participants: [
-//             { id: 1, name: 'John Doe', gender: 'MALE', nationality: 'Nepalese', attendanceStatus: 'PENDING' },
-//             { id: 2, name: 'Jane Doe', gender: 'FEMALE', nationality: 'Nepalese', attendanceStatus: 'PENDING' }
-//           ]
-//         },
-//         {
-//           id: 2,
-//           registrationDate: '2024-05-18T14:30:00',
-//           user: { id: 2, name: 'Mike Wilson', email: 'mike@example.com' },
-//           contact: '+977-9851234567',
-//           contactName: 'Mike Wilson',
-//           email: 'mike@example.com',
-//           status: 'CONFIRMED',
-//           payment: {
-//             id: 2,
-//             amount: 129,
-//             status: 'COMPLETED',
-//             method: 'Khalti'
-//           },
-//           participants: [
-//             { id: 3, name: 'Mike Wilson', gender: 'MALE', nationality: 'Nepalese', attendanceStatus: 'PENDING' }
-//           ]
-//         }
-//       ],
-      
-//       // Reviews
-//       reviews: [
-//         {
-//           id: 1,
-//           user: { name: 'Raj Kumar', profileImage: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80' },
-//           rating: 5,
-//           comment: 'Amazing experience! The guides were professional and the views were breathtaking.',
-//           createdAt: '2024-04-15T16:20:00',
-//           likes: 12
-//         },
-//         {
-//           id: 2,
-//           user: { name: 'Emily Chen' },
-//           rating: 4,
-//           comment: 'Well organized event. Would recommend to anyone looking for adventure.',
-//           createdAt: '2024-04-10T11:45:00',
-//           likes: 8
-//         }
-//       ]
-//     };
-
-//     setTimeout(() => {
-//       setEvent(mockEvent);
-//     //   setLoading(false);
-//     }, 1000);
-//   }, [eventId]);
+  const queryClient = useQueryClient();
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [showParticipantsPanel, setShowParticipantsPanel] = useState(false);
 
   const {data : eventData, isLoading, error} = useQuery({
     queryKey: ['organizerEventDetails', eventId],
-    queryFn: () => getEventById(Number(eventId)),
+    queryFn: () => getEventDetails(Number(eventId)),
     enabled: !!eventId,
   })
 
   const event = eventData as EventDetails;
 
+  const updateEventMutation = useMutation({
+    mutationFn: (updatedEvent: Event) => updateEvent(updatedEvent.id, updatedEvent),
+    onSuccess: () => {
+      // Invalidate and refetch events query
+      SuccesfulMessageToast("Event updated successfully!");
+      queryClient.invalidateQueries({ queryKey: ['organizerEvents', organizerId] });
+    },
+  });
 
+  const handleSaveEvent = (updatedEvent: Event) => {
+    updateEventMutation.mutate(updatedEvent);
+    setEditingEvent(null);
+  };
+  const handleViewParticipants = () => {
+  setShowParticipantsPanel(true);
+};
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -273,34 +92,7 @@ const OrganizerEventDetailsPage = () => {
     }
   };
 
-  const getPaymentStatusColor = (status: string) => {
-    switch (status) {
-      case 'COMPLETED': return 'text-green-600';
-      case 'PENDING': return 'text-yellow-600';
-      case 'FAILED': return 'text-red-600';
-      case 'REFUNDED': return 'text-blue-600';
-      default: return 'text-gray-600';
-    }
-  };
 
-  const getRegistrationStatusColor = (status: string) => {
-    switch (status) {
-      case 'CONFIRMED': return 'bg-green-100 text-green-800';
-      case 'PENDING': return 'bg-yellow-100 text-yellow-800';
-      case 'CANCELLED': return 'bg-red-100 text-red-800';
-      case 'COMPLETED': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getAttendanceStatusColor = (status: string) => {
-    switch (status) {
-      case 'PRESENT': return 'bg-green-100 text-green-800';
-      case 'ABSENT': return 'bg-red-100 text-red-800';
-      case 'PENDING': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
 
   const formatTime = (timeString: string) => {
     return timeString.substring(0, 5); // Extract HH:MM from HH:MM:SS
@@ -310,9 +102,6 @@ const OrganizerEventDetailsPage = () => {
     navigate(`/organizer/events/${eventId}/edit`);
   };
 
-  const handleViewParticipants = () => {
-    navigate(`/organizer/events/${eventId}/participants`);
-  };
 
   const handleSendEmail = () => {
   };
@@ -322,9 +111,6 @@ const OrganizerEventDetailsPage = () => {
     alert('Event data exported successfully!');
   };
 
-//   const handlePrint = () => {
-//     window.print();
-//   };
 
   if (isLoading) {
     return (
@@ -353,7 +139,7 @@ const OrganizerEventDetailsPage = () => {
     );
   }
 
-  const totalParticipants = event.registrations?.reduce((sum, reg) => sum + reg.participants.length, 0);
+  const totalParticipants = event.eventRegistration?.reduce((sum, reg) => sum + reg.eventParticipants.length, 0);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -390,25 +176,26 @@ const OrganizerEventDetailsPage = () => {
             
             <div className="flex flex-wrap gap-3">
               <button
-                onClick={handleEditEvent}
+                onClick={() =>setEditingEvent(event)}
                 className="px-4 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4a7a] transition-colors duration-200 flex items-center gap-2"
               >
                 <Edit className="w-4 h-4" />
                 Edit Event
               </button>
               <button
-                onClick={handleViewParticipants}
+                onClick={() => handleViewParticipants()}
                 className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200 flex items-center gap-2"
               >
+
                 <Eye className="w-4 h-4" />
                 View Participants
               </button>
               <button
                 onClick={handleSendEmail}
-                className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200 flex items-center gap-2"
+                className="px-4 py-2 bg-red-500 text-white border border-red-300 text-gray-700 rounded-lg hover:bg-red-400 transition-colors duration-200 flex items-center gap-2"
               >
-                <Send className="w-4 h-4" />
-                Send Email
+                <ShieldOff className="w-4 h-4" />
+                In-Active Event
               </button>
             </div>
           </div>
@@ -521,257 +308,6 @@ const OrganizerEventDetailsPage = () => {
               </div>
             </div>
 
-            {/* Tabs Navigation */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-              <div className="border-b border-gray-200">
-                <nav className="flex">
-                  <button
-                    onClick={() => setActiveTab('overview')}
-                    className={`flex-1 px-6 py-4 text-sm font-medium text-center transition-colors duration-200 ${
-                      activeTab === 'overview'
-                        ? 'border-b-2 border-[#1E3A5F] text-[#1E3A5F]'
-                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    <div className="flex items-center justify-center gap-2">
-                      <BarChart className="w-4 h-4" />
-                      Overview
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('participants')}
-                    className={`flex-1 px-6 py-4 text-sm font-medium text-center transition-colors duration-200 ${
-                      activeTab === 'participants'
-                        ? 'border-b-2 border-[#1E3A5F] text-[#1E3A5F]'
-                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    <div className="flex items-center justify-center gap-2">
-                      <Users className="w-4 h-4" />
-                      Participants ({totalParticipants})
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('reviews')}
-                    className={`flex-1 px-6 py-4 text-sm font-medium text-center transition-colors duration-200 ${
-                      activeTab === 'reviews'
-                        ? 'border-b-2 border-[#1E3A5F] text-[#1E3A5F]'
-                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    <div className="flex items-center justify-center gap-2">
-                      <Star className="w-4 h-4" />
-                      Reviews ({event?.reviewCount})
-                    </div>
-                  </button>
-                </nav>
-              </div>
-
-              {/* Tab Content */}
-              <div className="p-6">
-                {/* Overview Tab */}
-                {activeTab === 'overview' && (
-                  <div className="space-y-6">
-                    {/* Stats Grid */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <div className="text-2xl font-bold text-[#1E3A5F] mb-1">{totalParticipants}/{event?.maxParticipants}</div>
-                        <div className="text-sm text-gray-600">Participants</div>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <div className="text-2xl font-bold text-green-600 mb-1">{event?.registrationRate}%</div>
-                        <div className="text-sm text-gray-600">Registration Rate</div>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <div className="text-2xl font-bold text-purple-600 mb-1">${event?.totalRevenue}</div>
-                        <div className="text-sm text-gray-600">Total Revenue</div>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <div className="text-2xl font-bold text-yellow-600 mb-1">{event?.averageRating}</div>
-                        <div className="text-sm text-gray-600">Avg Rating</div>
-                      </div>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div>
-                      <div className="flex justify-between text-sm text-gray-600 mb-1">
-                        <span>Registration Progress</span>
-                        <span>{event?.registrationRate}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-[#1E3A5F] h-2 rounded-full transition-all duration-500"
-                          style={{ width: `${event?.registrationRate}%` }}
-                        ></div>
-                      </div>
-                    </div>
-
-                    {/* Recent Activity */}
-                    <div>
-                      <h4 className="font-medium text-gray-900 mb-4">Recent Activity</h4>
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                              <User className="w-4 h-4 text-blue-600" />
-                            </div>
-                            <div>
-                              <div className="font-medium text-gray-900">New Registration</div>
-                              <div className="text-sm text-gray-600">John Doe registered 2 participants</div>
-                            </div>
-                          </div>
-                          <div className="text-sm text-gray-500">2 hours ago</div>
-                        </div>
-                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                              <CheckCheck className="w-4 h-4 text-green-600" />
-                            </div>
-                            <div>
-                              <div className="font-medium text-gray-900">Payment Received</div>
-                              <div className="text-sm text-gray-600">Mike Wilson completed payment</div>
-                            </div>
-                          </div>
-                          <div className="text-sm text-gray-500">1 day ago</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Participants Tab */}
-                {activeTab === 'participants' && (
-                  <div className="space-y-6">
-                    <div className="flex justify-between items-center">
-                      <h4 className="font-medium text-gray-900">Registered Participants ({totalParticipants})</h4>
-                      <button
-                        onClick={handleExportData}
-                        className="text-sm text-[#1E3A5F] hover:text-[#2a4a7a] flex items-center gap-1"
-                      >
-                        <Download className="w-4 h-4" />
-                        Export List
-                      </button>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      {event?.registrations.map((registration) => (
-                        <div key={registration.id} className="border border-gray-200 rounded-lg p-4">
-                          <div className="flex justify-between items-start mb-3">
-                            <div>
-                              <div className="font-medium text-gray-900">{registration.user.name}</div>
-                              <div className="text-sm text-gray-600">{registration.email}</div>
-                              <div className="text-sm text-gray-600">{registration.contact}</div>
-                            </div>
-                            <div className="flex flex-col items-end gap-2">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRegistrationStatusColor(registration.status)}`}>
-                                {registration.status}
-                              </span>
-                              <span className={`text-sm font-medium ${getPaymentStatusColor(registration.payment.status)}`}>
-                                {registration.payment.method} • {registration.payment.status}
-                              </span>
-                            </div>
-                          </div>
-                          
-                          <div className="border-t border-gray-200 pt-3 mt-3">
-                            <div className="text-sm text-gray-600 mb-2">
-                              Registered on {new Date(registration.registrationDate).toLocaleDateString()}
-                            </div>
-                            <div className="space-y-2">
-                              {registration.participants.map((participant) => (
-                                <div key={participant.id} className="flex items-center justify-between text-sm">
-                                  <div className="flex items-center gap-2">
-                                    <User className="w-4 h-4 text-gray-400" />
-                                    <span className="font-medium">{participant.name}</span>
-                                    <span className="text-gray-600">({participant.nationality})</span>
-                                  </div>
-                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getAttendanceStatusColor(participant.attendanceStatus)}`}>
-                                    {participant.attendanceStatus}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Reviews Tab */}
-                {activeTab === 'reviews' && (
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="text-3xl font-bold text-gray-900">{event?.averageRating}</div>
-                        <div>
-                          <div className="flex items-center gap-1">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <Star
-                                key={star}
-                                className={`w-5 h-5 ${
-                                  star <= Math.floor(event?.averageRating || 0)
-                                    ? 'text-yellow-400 fill-current'
-                                    : 'text-gray-300'
-                                }`}
-                              />
-                            ))}
-                          </div>
-                          <div className="text-sm text-gray-600">{event?.reviewCount} reviews</div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      {event?.reviews.map((review) => (
-                        <div key={review.id} className="border border-gray-200 rounded-lg p-4">
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                              {review.user.profileImage ? (
-                                <img
-                                  src={review.user.profileImage}
-                                  alt={review.user.name}
-                                  className="w-10 h-10 rounded-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-10 h-10 bg-[#1E3A5F] rounded-full flex items-center justify-center text-white font-medium">
-                                  {review.user.name.charAt(0)}
-                                </div>
-                              )}
-                              <div>
-                                <div className="font-medium text-gray-900">{review.user.name}</div>
-                                <div className="flex items-center gap-1">
-                                  {[1, 2, 3, 4, 5].map((star) => (
-                                    <Star
-                                      key={star}
-                                      className={`w-4 h-4 ${
-                                        star <= review.rating
-                                          ? 'text-yellow-400 fill-current'
-                                          : 'text-gray-300'
-                                      }`}
-                                    />
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {new Date(review.createdAt).toLocaleDateString()}
-                            </div>
-                          </div>
-                          <p className="text-gray-700 mb-3">{review.comment}</p>
-                          <div className="flex items-center gap-4 text-sm text-gray-600">
-                            <button className="flex items-center gap-1 hover:text-gray-800">
-                              <Heart className="w-4 h-4" />
-                              {review.likes} likes
-                            </button>
-                            <button className="hover:text-gray-800">Reply</button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
           </div>
 
           {/* Right Column: Stats & Actions */}
@@ -819,16 +355,6 @@ const OrganizerEventDetailsPage = () => {
                   </div>
                 </button>
                 
-                <button
-                  onClick={handleViewParticipants}
-                  className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200 flex items-center gap-3"
-                >
-                  <Users className="w-5 h-5 text-gray-400" />
-                  <div>
-                    <div className="font-medium text-gray-900">Manage Participants</div>
-                    <div className="text-sm text-gray-600">View and manage registrations</div>
-                  </div>
-                </button>
                 
                 <button
                   onClick={handleSendEmail}
@@ -849,6 +375,17 @@ const OrganizerEventDetailsPage = () => {
                   <div>
                     <div className="font-medium text-gray-900">Export Data</div>
                     <div className="text-sm text-gray-600">Download participant list</div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => handleViewParticipants()}
+                  className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200 flex items-center gap-3"
+                >
+                  <Trash className="w-5 h-5 text-gray-400" />
+                  <div>
+                    <div className="font-medium text-gray-900">Delete Event</div>
+                    <div className="text-sm text-gray-600">Remove this event permanently</div>
                   </div>
                 </button>
               </div>
@@ -880,6 +417,21 @@ const OrganizerEventDetailsPage = () => {
           </div>
         </div>
       </div>
+
+       <ViewParticipantsSlider 
+        isOpen={showParticipantsPanel}
+        onClose={() => setShowParticipantsPanel(false)}
+        eventId={eventId || ''}
+        eventData={eventData}
+        isLoading={isLoading}
+      />
+      <EditEventModal
+              event={editingEvent!}
+              isOpen={!!editingEvent}
+              onClose={() => setEditingEvent(null)}
+              onSave={handleSaveEvent}
+              
+            />
     </div>
     );
 };

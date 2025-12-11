@@ -1,46 +1,16 @@
 import { useState } from 'react';
-import { getOrganizerEvents, updateEvent } from '../../api/services/Event';
+import { getOrganizerEvents } from '../../api/services/Event';
 import { useAuth } from '../../context/AuthContext';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import EditEventModal from '../../components/organizer/popup/EditEventModal';
-import { SuccesfulMessageToast } from '../../utils/Toastify.util';
-import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 
-interface Event {
-  id: number;
-  title: string;
-  description: string;
-  location: string;
-  date: string;
-  durationDays: number;
-  difficultyLevel: 'EASY' | 'MODERATE' | 'DIFFICULT' | 'EXTREME' | 'EXPERT';
-  price: number;
-  maxParticipants: number;
-  meetingPoint: string;
-  meetingTime: string;
-  contactPerson: string;
-  contactEmail: string;
-  bannerImageUrl: string;
-  includedServices: string[];
-  requirements: string[];
-  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED' | 'COMPLETED';
-  // Optional fields that might not be in the API response
-  currentParticipants?: number;
-  registeredParticipants?: {
-    id: string;
-    name: string;
-    email: string;
-    registeredAt: string;
-  }[];
-}
+import { useNavigate } from 'react-router-dom';
+import type { Event } from '../../types/eventTypes';
 
 const OrganizerEventsPage = () => {
   const { user } = useAuth();
   const organizerId = user?.id;
-  const queryClient = useQueryClient();
 
   const  navigate = useNavigate();
-  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
 
   // const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [view, setView] = useState<'grid' | 'list'>('grid');
@@ -48,19 +18,6 @@ const OrganizerEventsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
 
-  const updateEventMutation = useMutation({
-    mutationFn: (updatedEvent: Event) => updateEvent(updatedEvent.id, updatedEvent),
-    onSuccess: () => {
-      // Invalidate and refetch events query
-      SuccesfulMessageToast("Event updated successfully!");
-      queryClient.invalidateQueries({ queryKey: ['organizerEvents', organizerId] });
-    },
-  });
-
-  const handleSaveEvent = (updatedEvent: Event) => {
-    updateEventMutation.mutate(updatedEvent);
-    setEditingEvent(null);
-  };
 
   const { data: events = [], isLoading, error } = useQuery({
     queryKey: ['organizerEvents', organizerId],
@@ -395,12 +352,7 @@ const OrganizerEventsPage = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex gap-2">
-                        <button 
-                              onClick={() => setEditingEvent(event)}
-                              className="text-[#1E3A5F] hover:text-[#2a4a7a] transition-colors duration-200"
-                            >
-                              Edit
-                            </button>
+                        
                         <button 
                           onClick={() => handleEventView(event.id)}
                           className="text-gray-600 hover:text-gray-800 transition-colors duration-200"
@@ -432,12 +384,6 @@ const OrganizerEventsPage = () => {
       </div>
 
       
-      <EditEventModal
-        event={editingEvent!}
-        isOpen={!!editingEvent}
-        onClose={() => setEditingEvent(null)}
-        onSave={handleSaveEvent}
-      />
     </div>
   );
 };

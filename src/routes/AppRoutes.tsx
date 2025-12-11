@@ -16,7 +16,6 @@ import BookingCheckoutPage from "../pages/hiker/BookingCheckoutPage";
 import BookingConfirmationPage from "../pages/hiker/BookingConfirmationPage";
 import MyBookingsPage from "../pages/hiker/MyBookingsPage";
 import HikerProfilePage from "../pages/hiker/HikerProfilePage";
-import OrganizerParticipantsPage from "../pages/organizer/OrganizerParticipantsPage";
 import OrganizerEventDetailsPage from "../pages/organizer/OrganizerEventDetailsPage ";
 
 const AppRoutes = () => {
@@ -33,7 +32,7 @@ const AppRoutes = () => {
       <Route element={<ProtectedRoute allowedRoles={["ORGANIZER"]} />}>
         <Route path="/dashboard" element={<OrganizerLayout />}>
           <Route index element={<OrganizerDashboard />} />
-          
+
           <Route path="events" element={<OrganizerEventsPage />} />
           <Route path="events/:eventId" element={<OrganizerEventDetailsPage />} />
           <Route path="register" element={<CreateEventPage />} />

@@ -15,44 +15,19 @@ import {
   DollarSign,
   Image
 } from 'lucide-react';
+import type { Event } from '../../../types/eventTypes';
 
 // Update the Event interface to match your API
-interface Event {
-  id: number;
-  title: string;
-  description: string;
-  location: string;
-  date: string;
-  durationDays: number;
-  difficultyLevel: 'EASY' | 'MODERATE' | 'DIFFICULT' | 'EXTREME' | 'EXPERT';
-  price: number;
-  maxParticipants: number;
-  meetingPoint: string;
-  meetingTime: string;
-  contactPerson: string;
-  contactEmail: string;
-  bannerImageUrl: string;
-  includedServices: string[];
-  requirements: string[];
-  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED' | 'COMPLETED';
-  currentParticipants?: number;
-  registeredParticipants?: {
-    id: string;
-    name: string;
-    email: string;
-    registeredAt: string;
-  }[];
-  createdAt?: string;
-}
 
-interface EditEventModalProps {
+
+export interface EditEventModalProps {
   event: Event;
   isOpen: boolean;
   onClose: () => void;
   onSave: (updatedEvent: Event) => void;
 }
 
-const EditEventModal = ({ event, isOpen, onClose, onSave }: EditEventModalProps) => {
+const EditEventModal = ({ event, isOpen, onClose, onSave}: EditEventModalProps) => {
   const [formData, setFormData] = useState<Event>(event);
   const [currentService, setCurrentService] = useState('');
   const [currentRequirement, setCurrentRequirement] = useState('');
