@@ -83,7 +83,7 @@ export interface EventParticipant {
   name: string;
   gender: 'MALE' | 'FEMALE' | 'OTHER';
   nationality: string;
-  attendanceStatus: 'PENDING' | 'PRESENT' | 'ABSENT';
+  attendanceStatus: 'PRESENT' | 'ABSENT' | 'REGISTERED';
 }
 
 export interface Review {

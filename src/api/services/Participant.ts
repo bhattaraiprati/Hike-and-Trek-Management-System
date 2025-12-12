@@ -1,8 +1,17 @@
 import axios from "axios";
+import { urlLink } from "../axiosConfig";
 
+export interface ParticipantsAttendanceDTO {
+  participantId: number;
+  attendanceStatus: string;
+}
 
-export const updateParticipantAttendance = async (participantId: number, status: string) => {
-  const response = await axios.put(`/participants/${participantId}/attendance`, { status });
+export const updateParticipantAttendance = async (eventId: number, attendance: ParticipantsAttendanceDTO[]) => {
+  const response = await axios.post(`${urlLink}/organizer/event/makeAttendance/${eventId}`, attendance,{
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
   return response.data;
 };
 
