@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { 
   X, Check, XCircle, User, FileText, Clock, Download,
-  Search, Filter, CheckCircle, Send, Printer
+  Search, Filter, CheckCircle,
 } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ErrorMessageToast, SuccesfulMessageToast } from '../../../utils/Toastify.util';
-import { exportParticipantsToCSV, sendAttendanceEmail, updateParticipantAttendance } from '../../../api/services/Participant';
+import { exportParticipantsToCSV, updateParticipantAttendance, type ParticipantsAttendanceDTO } from '../../../api/services/Participant';
 import type { EventParticipant, EventDetails } from '../../../types/eventTypes';
 
 interface ParticipantsPanelProps {
@@ -29,8 +29,8 @@ const ViewParticipantsSlider = ({
   const [selectedParticipants, setSelectedParticipants] = useState<number[]>([]);
 
   const updateAttendanceMutation = useMutation({
-    mutationFn: ({ participantId, status }: { participantId: number; status: EventParticipant['attendanceStatus'] }) =>
-      updateParticipantAttendance(participantId, status),
+    mutationFn: (attendance: ParticipantsAttendanceDTO[]) =>
+      updateParticipantAttendance(Number(eventId), attendance),
     onSuccess: () => {
       SuccesfulMessageToast('Attendance updated successfully!');
       queryClient.invalidateQueries({ queryKey: ['organizerEventDetails', eventId] });
@@ -42,13 +42,15 @@ const ViewParticipantsSlider = ({
 
   const handleAttendanceToggle = (participantId: number, currentStatus: EventParticipant['attendanceStatus']) => {
     const newStatus = currentStatus === 'PRESENT' ? 'ABSENT' : 'PRESENT';
-    updateAttendanceMutation.mutate({ participantId, status: newStatus });
+    updateAttendanceMutation.mutate([{ participantId, attendanceStatus: newStatus }]);
   };
 
   const handleBulkAttendance = (status: 'PRESENT' | 'ABSENT') => {
-    selectedParticipants.forEach(participantId => {
-      updateAttendanceMutation.mutate({ participantId, status });
-    });
+    const attendanceData: ParticipantsAttendanceDTO[] = selectedParticipants.map(participantId => ({
+      participantId,
+      attendanceStatus: status
+    }));
+    updateAttendanceMutation.mutate(attendanceData);
     setSelectedParticipants([]);
   };
 
@@ -65,19 +67,6 @@ const ViewParticipantsSlider = ({
     } catch (error) {
       ErrorMessageToast('Failed to export participants');
     }
-  };
-
-  const handleSendAttendanceEmail = async (participantId: number) => {
-    try {
-      await sendAttendanceEmail(participantId);
-      SuccesfulMessageToast('Attendance email sent!');
-    } catch (error) {
-      ErrorMessageToast('Failed to send email');
-    }
-  };
-
-  const handlePrintList = () => {
-    window.print();
   };
 
   // FIX: Access eventRegistration instead of registrations
@@ -101,16 +90,16 @@ const ViewParticipantsSlider = ({
     total: filteredParticipants.length,
     present: filteredParticipants.filter((p) => p.attendanceStatus === 'PRESENT').length,
     absent: filteredParticipants.filter((p) => p.attendanceStatus === 'ABSENT').length,
-    pending: filteredParticipants.filter((p) => p.attendanceStatus === 'PENDING').length,
-    // registered: filteredParticipants.filter((p) => p.attendanceStatus === 'REGISTERED').length,
+    // pending: filteredParticipants.filter((p) => p.attendanceStatus === 'PENDING').length,
+    registered: filteredParticipants.filter((p) => p.attendanceStatus === 'REGISTERED').length,
   };
 
   const getStatusColor = (status: EventParticipant['attendanceStatus']) => {
     switch (status) {
       case 'PRESENT': return 'bg-green-100 text-green-800 border-green-200';
       case 'ABSENT': return 'bg-red-100 text-red-800 border-red-200';
-      case 'PENDING': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-    //   case 'REGISTERED': return 'bg-blue-100 text-blue-800 border-blue-200';
+      // case 'PENDING': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'REGISTERED': return 'bg-blue-100 text-blue-800 border-blue-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
@@ -119,8 +108,8 @@ const ViewParticipantsSlider = ({
     switch (status) {
       case 'PRESENT': return <CheckCircle className="w-4 h-4" />;
       case 'ABSENT': return <XCircle className="w-4 h-4" />;
-      case 'PENDING': return <Clock className="w-4 h-4" />;
-    //   case 'REGISTERED': return <User className="w-4 h-4" />;
+      // case 'PENDING': return <Clock className="w-4 h-4" />;
+      case 'REGISTERED': return <User className="w-4 h-4" />;
       default: return <Clock className="w-4 h-4" />;
     }
   };
@@ -194,7 +183,6 @@ const ViewParticipantsSlider = ({
                 <option value="REGISTERED">Registered</option>
                 <option value="PRESENT">Present</option>
                 <option value="ABSENT">Absent</option>
-                <option value="PENDING">Pending</option>
               </select>
             </div>
           </div>
@@ -328,13 +316,13 @@ const ViewParticipantsSlider = ({
                             <XCircle className="w-3 h-3" />
                             Absent
                           </button>
-                          <button
+                          {/* <button
                             onClick={() => handleSendAttendanceEmail(participant.id)}
                             className="px-3 py-1.5 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-1"
                           >
                             <Send className="w-3 h-3" />
                             Email
-                          </button>
+                          </button> */}
                         </div>
                       </div>
                     </div>
@@ -353,18 +341,11 @@ const ViewParticipantsSlider = ({
             </div>
             <div className="flex gap-3">
               <button
-                onClick={handlePrintList}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
-              >
-                <Printer className="w-4 h-4" />
-                Print
-              </button>
-              <button
                 onClick={handleExportCSV}
                 className="px-4 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4a7a] transition-colors flex items-center gap-2"
               >
                 <Download className="w-4 h-4" />
-                Export CSV
+                Download PDF
               </button>
             </div>
           </div>

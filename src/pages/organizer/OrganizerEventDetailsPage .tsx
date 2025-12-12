@@ -6,9 +6,10 @@ import {
   CheckCircle, AlertCircle, Download,  ArrowLeft,
   ShieldOff,
   Trash,
+  ShieldCheck,
 } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getEventDetails, updateEvent } from '../../api/services/Event';
+import { getEventDetails, UpdateEventStatus, updateEvent } from '../../api/services/Event';
 import EditEventModal from '../../components/organizer/popup/EditEventModal';
 import { SuccesfulMessageToast } from '../../utils/Toastify.util';
 import { useAuth } from '../../context/AuthContext';
@@ -31,7 +32,8 @@ const OrganizerEventDetailsPage = () => {
     queryKey: ['organizerEventDetails', eventId],
     queryFn: () => getEventDetails(Number(eventId)),
     enabled: !!eventId,
-  })
+    retry: 1,
+  })  
 
   const event = eventData as EventDetails;
 
@@ -44,9 +46,21 @@ const OrganizerEventDetailsPage = () => {
     },
   });
 
+  const updateEventStatusMutation = useMutation({
+    mutationFn: (Status: String) => UpdateEventStatus(Number(eventId), Status),
+    onSuccess: () => {
+      // Invalidate and refetch events query
+      SuccesfulMessageToast("Event status updated successfully!");
+      queryClient.invalidateQueries({ queryKey: ['organizerEventDetails', eventId] });
+    },
+  });
+
   const handleSaveEvent = (updatedEvent: Event) => {
     updateEventMutation.mutate(updatedEvent);
     setEditingEvent(null);
+  };
+   const handleEventStatus = (status: String) => {
+    updateEventStatusMutation.mutate(status);
   };
   const handleViewParticipants = () => {
   setShowParticipantsPanel(true);
@@ -91,7 +105,6 @@ const OrganizerEventDetailsPage = () => {
       default: return difficulty;
     }
   };
-
 
 
   const formatTime = (timeString: string) => {
@@ -190,13 +203,24 @@ const OrganizerEventDetailsPage = () => {
                 <Eye className="w-4 h-4" />
                 View Participants
               </button>
+              {event?.status !== 'INACTIVE' ? (
               <button
-                onClick={handleSendEmail}
+                onClick={() => handleEventStatus('INACTIVE')}
                 className="px-4 py-2 bg-red-500 text-white border border-red-300 text-gray-700 rounded-lg hover:bg-red-400 transition-colors duration-200 flex items-center gap-2"
               >
                 <ShieldOff className="w-4 h-4" />
                 In-Active Event
               </button>
+              ) : (
+              <button
+                onClick={() => handleEventStatus('ACTIVE')}
+                className="px-4 py-2 bg-[#1E3A5F] text-white border border-[#1E3A5F] text-gray-700 rounded-lg hover:bg-[#2a4a7a] transition-colors duration-200 flex items-center gap-2"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                Active Event
+              </button>
+              )}
+
             </div>
           </div>
         </div>

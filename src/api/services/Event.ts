@@ -133,3 +133,13 @@ export const getEventDetails = async (eventId: number) => {
   });
   return response.data;
 }
+
+export const UpdateEventStatus = async (eventId: number, status: String) => {
+  const response = await axios.patch(`${urlLink}/organizer/event/statusChange/${eventId}`,{}, {
+    params: { status },
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+  return response.data;
+}
