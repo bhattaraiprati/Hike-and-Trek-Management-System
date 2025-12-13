@@ -15,6 +15,7 @@ import { SuccesfulMessageToast } from '../../utils/Toastify.util';
 import { useAuth } from '../../context/AuthContext';
 import type { Event, EventDetails } from '../../types/eventTypes';
 import ViewParticipantsSlider from '../../components/organizer/popup/ViewParticipantsSlider';
+import BulkEmailModal from '../../components/organizer/popup/BulkEmailModal';
 
 
 
@@ -27,6 +28,7 @@ const OrganizerEventDetailsPage = () => {
   const queryClient = useQueryClient();
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [showParticipantsPanel, setShowParticipantsPanel] = useState(false);
+  const [showBulkEmailModal, setShowBulkEmailModal] = useState(false);
 
   const {data : eventData, isLoading, error} = useQuery({
     queryKey: ['organizerEventDetails', eventId],
@@ -117,6 +119,8 @@ const OrganizerEventDetailsPage = () => {
 
 
   const handleSendEmail = () => {
+    setShowBulkEmailModal(true);
+
   };
 
   const handleExportData = () => {
@@ -445,6 +449,13 @@ const OrganizerEventDetailsPage = () => {
        <ViewParticipantsSlider 
         isOpen={showParticipantsPanel}
         onClose={() => setShowParticipantsPanel(false)}
+        eventId={eventId || ''}
+        eventData={eventData}
+        isLoading={isLoading}
+      />
+      <BulkEmailModal 
+        isOpen={showBulkEmailModal}
+        onClose={() => setShowBulkEmailModal(false)}
         eventId={eventId || ''}
         eventData={eventData}
         isLoading={isLoading}

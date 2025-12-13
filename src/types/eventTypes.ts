@@ -97,3 +97,9 @@ export interface Review {
   createdAt: string;
   likes: number;
 }
+
+export interface BulkEmailPayload {
+  recipients: string[];
+  subject: string;
+  text: string;
+}

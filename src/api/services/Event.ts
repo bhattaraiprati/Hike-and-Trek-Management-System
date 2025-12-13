@@ -1,6 +1,7 @@
 import axios from "axios";
 import { urlLink } from "../axiosConfig";
 import type { EventRegistrationResponse } from "../../pages/hiker/BookingConfirmationPage";
+import type { BulkEmailPayload } from "../../types/eventTypes";
 
 export interface EventCreateRequest {
   title: string;
@@ -137,6 +138,16 @@ export const getEventDetails = async (eventId: number) => {
 export const UpdateEventStatus = async (eventId: number, status: String) => {
   const response = await axios.patch(`${urlLink}/organizer/event/statusChange/${eventId}`,{}, {
     params: { status },
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+  return response.data;
+}
+
+
+export const sendBulkEmail = async (eventId: Number, payload: BulkEmailPayload) => {
+  const response = await axios.post(`${urlLink}/organizer/event/sendBulkEmail/${eventId}`, payload, {
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
