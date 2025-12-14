@@ -17,6 +17,7 @@ import BookingConfirmationPage from "../pages/hiker/BookingConfirmationPage";
 import MyBookingsPage from "../pages/hiker/MyBookingsPage";
 import HikerProfilePage from "../pages/hiker/HikerProfilePage";
 import OrganizerEventDetailsPage from "../pages/organizer/OrganizerEventDetailsPage ";
+import ChatInterface from "../components/chat/ChatInterface";
 
 const AppRoutes = () => {
   return (
@@ -37,7 +38,7 @@ const AppRoutes = () => {
           <Route path="events/:eventId" element={<OrganizerEventDetailsPage />} />
           <Route path="register" element={<CreateEventPage />} />
           {/* <Route path="participants" element={<OrganizerEventDetailsPage />} /> */}
-          <Route path="messages" element={<div>Messages Page</div>} />
+          <Route path="messages" element={<ChatInterface/>} />
           <Route path="profile" element={<div>Profile Page</div>} />
           <Route path="settings" element={<div>Settings Page</div>} />
         </Route>

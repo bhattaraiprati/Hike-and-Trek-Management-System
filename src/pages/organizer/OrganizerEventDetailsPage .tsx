@@ -7,12 +7,12 @@ import {
   ShieldOff,
   Trash,
   ShieldCheck,
+  MessageCircleMore,
 } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getEventDetails, UpdateEventStatus, updateEvent } from '../../api/services/Event';
 import EditEventModal from '../../components/organizer/popup/EditEventModal';
 import { SuccesfulMessageToast } from '../../utils/Toastify.util';
-import { useAuth } from '../../context/AuthContext';
 import type { Event, EventDetails } from '../../types/eventTypes';
 import ViewParticipantsSlider from '../../components/organizer/popup/ViewParticipantsSlider';
 import BulkEmailModal from '../../components/organizer/popup/BulkEmailModal';
@@ -21,9 +21,7 @@ import BulkEmailModal from '../../components/organizer/popup/BulkEmailModal';
 
 
 const OrganizerEventDetailsPage = () => {
-  const { user } = useAuth();
   const { eventId } = useParams<{ eventId: string }>();
-  const organizerId = user?.id;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
@@ -44,7 +42,7 @@ const OrganizerEventDetailsPage = () => {
     onSuccess: () => {
       // Invalidate and refetch events query
       SuccesfulMessageToast("Event updated successfully!");
-      queryClient.invalidateQueries({ queryKey: ['organizerEvents', organizerId] });
+      queryClient.invalidateQueries({ queryKey: ['organizerEventDetails', eventId] });
     },
   });
 
@@ -376,10 +374,10 @@ const OrganizerEventDetailsPage = () => {
                   onClick={handleEditEvent}
                   className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200 flex items-center gap-3"
                 >
-                  <Edit className="w-5 h-5 text-gray-400" />
+                  <MessageCircleMore className="w-5 h-5 text-gray-400" />
                   <div>
-                    <div className="font-medium text-gray-900">Edit Event Details</div>
-                    <div className="text-sm text-gray-600">Update event information</div>
+                    <div className="font-medium text-gray-900">Message</div>
+                    <div className="text-sm text-gray-600">Deliver messages to participants</div>
                   </div>
                 </button>
                 
