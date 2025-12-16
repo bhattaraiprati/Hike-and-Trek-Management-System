@@ -50,8 +50,7 @@ const OrganizerSidebar: React.FC<SidebarProps> = ({
     { id: 'dashboard',      label: 'Dashboard',        icon: LayoutDashboard,   to: '/dashboard' },
     { id: 'events',         label: 'My Events',        icon: Calendar,          to: '/dashboard/events' },
     { id: 'create-event',   label: 'Create New Event', icon: Map,               to: '/dashboard/register' },
-    { id: 'participants',   label: 'Participants',     icon: Users,             to: '/dashboard/participants' },
-    { id: 'messages',       label: 'Messages',         icon: MessageSquare,     to: '/dashboard/messages' },
+    { id: 'Chat',       label: 'Chat',         icon: MessageSquare,     to: '/dashboard/messages' },
     { id: 'profile',        label: 'Profile / KYC',    icon: User,              to: '/dashboard/profile' },
     { id: 'settings',       label: 'Settings',         icon: Settings,          to: '/dashboard/settings' },
   ];

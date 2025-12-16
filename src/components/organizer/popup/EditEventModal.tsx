@@ -33,10 +33,46 @@ const EditEventModal = ({ event, isOpen, onClose, onSave}: EditEventModalProps) 
   const [currentRequirement, setCurrentRequirement] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  useEffect(() => {
-    setFormData(event);
-    setErrors({});
-  }, [event]);
+ useEffect(() => {
+  if (event) {
+    let cleanedServices = event.includedServices || [];
+    let cleanedRequirements = event.requirements || [];
+
+    // Detect and fix corrupted [[...]] format
+    if (cleanedServices.length === 1 && typeof cleanedServices[0] === 'string') {
+      const first = cleanedServices[0];
+      if (first.startsWith('[[') && first.endsWith(']]')) {
+        // Extract content inside [[ ]]
+        const inner = first.slice(2, -2).trim();
+        if (inner) {
+          cleanedServices = inner.split(',').map(s => s.trim()).filter(Boolean);
+        } else {
+          cleanedServices = [];
+        }
+      }
+    }
+
+    // Same for requirements
+    if (cleanedRequirements.length === 1 && typeof cleanedRequirements[0] === 'string') {
+      const first = cleanedRequirements[0];
+      if (first.startsWith('[[') && first.endsWith(']]')) {
+        const inner = first.slice(2, -2).trim();
+        if (inner) {
+          cleanedRequirements = inner.split(',').map(s => s.trim()).filter(Boolean);
+        } else {
+          cleanedRequirements = [];
+        }
+      }
+    }
+
+    setFormData({
+      ...event,
+      includedServices: cleanedServices,
+      requirements: cleanedRequirements
+    });
+  }
+  setErrors({});
+}, [event])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -587,24 +623,6 @@ const EditEventModal = ({ event, isOpen, onClose, onSave}: EditEventModalProps) 
               </div>
             </section>
             
-            {/* Status */}
-            {/* <section>
-              <h3 className="text-lg font-semibold text-[#1E3A5F] mb-4">
-                Event Status
-              </h3>
-              <select
-                name="status"
-                value={formData?.status}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E3A5F] focus:border-transparent transition-all duration-200"
-              >
-                <option value="PENDING">Pending</option>
-                <option value="APPROVED">Approved</option>
-                <option value="REJECTED">Rejected</option>
-                <option value="CANCELLED">Cancelled</option>
-                <option value="COMPLETED">Completed</option>
-              </select>
-            </section> */}
           </div>
 
           {/* Action Buttons */}

@@ -17,6 +17,7 @@ import BookingConfirmationPage from "../pages/hiker/BookingConfirmationPage";
 import MyBookingsPage from "../pages/hiker/MyBookingsPage";
 import HikerProfilePage from "../pages/hiker/HikerProfilePage";
 import OrganizerEventDetailsPage from "../pages/organizer/OrganizerEventDetailsPage ";
+import ChatInterface from "../components/chat/ChatInterface";
 
 const AppRoutes = () => {
   return (
@@ -37,7 +38,7 @@ const AppRoutes = () => {
           <Route path="events/:eventId" element={<OrganizerEventDetailsPage />} />
           <Route path="register" element={<CreateEventPage />} />
           {/* <Route path="participants" element={<OrganizerEventDetailsPage />} /> */}
-          <Route path="messages" element={<div>Messages Page</div>} />
+          <Route path="messages" element={<ChatInterface/>} />
           <Route path="profile" element={<div>Profile Page</div>} />
           <Route path="settings" element={<div>Settings Page</div>} />
         </Route>
@@ -53,6 +54,7 @@ const AppRoutes = () => {
           <Route path="profile" element={<HikerProfilePage />} />
           <Route path="event/:eventId" element={<EventDetailsPage />} />
           <Route path="event/:eventId/checkout" element={<BookingCheckoutPage />} />
+          <Route path="messages" element={<ChatInterface/>} />
           <Route path="booking-confirmation/:bookingId" element={<BookingConfirmationPage />} />
         </Route>
       </Route>
