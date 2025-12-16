@@ -10,6 +10,8 @@ interface ChatSidebarProps {
 }
 
 const ChatSidebar = ({ rooms, selectedRoom, onSelectRoom, isLoading }: ChatSidebarProps) => {
+
+  console.log("Here is the room id", );
   const formatTime = (timestamp?: string) => {
     if (!timestamp) return '';
     
@@ -79,17 +81,17 @@ const ChatSidebar = ({ rooms, selectedRoom, onSelectRoom, isLoading }: ChatSideb
           <div className="divide-y divide-gray-100">
             {rooms.map((room) => (
               <button
-                key={room.id}
+                key={room.roomId}
                 onClick={() => onSelectRoom(room)}
                 className={`w-full text-left p-4 hover:bg-gray-50 transition-colors duration-150 ${
-                  selectedRoom?.id === room.id ? 'bg-blue-50 border-r-2 border-[#1E3A5F]' : ''
+                  selectedRoom?.roomId === room.roomId ? 'bg-blue-50 border-r-2 border-[#1E3A5F]' : ''
                 }`}
               >
                 <div className="flex items-start gap-3">
                   {/* Avatar */}
                   <div className="relative">
                     <div className="w-12 h-12 bg-gradient-to-br from-[#1E3A5F] to-[#2a4a7a] rounded-full flex items-center justify-center text-white font-medium">
-                      {room.name.charAt(0).toUpperCase()}
+                      {room.roomName?.charAt(0).toUpperCase()}
                     </div>
                     {room.isOnline && (
                       <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
@@ -99,9 +101,9 @@ const ChatSidebar = ({ rooms, selectedRoom, onSelectRoom, isLoading }: ChatSideb
                   {/* Room Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <h3 className="font-medium text-gray-900 truncate">
-                        {room.name}
-                      </h3>
+                      <p className="font-medium text-gray-900 truncate">
+                        {room.roomName}
+                      </p>
                       <div className="flex items-center gap-1.5">
                         {room.lastMessageTime && (
                           <span className="text-xs text-gray-500 whitespace-nowrap">

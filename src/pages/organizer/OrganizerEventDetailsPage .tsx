@@ -16,6 +16,8 @@ import { SuccesfulMessageToast } from '../../utils/Toastify.util';
 import type { Event, EventDetails } from '../../types/eventTypes';
 import ViewParticipantsSlider from '../../components/organizer/popup/ViewParticipantsSlider';
 import BulkEmailModal from '../../components/organizer/popup/BulkEmailModal';
+import CreateChatModal from '../../components/organizer/popup/CreateChatModal';
+import { getRoomStatus } from '../../api/services/chatApi';
 
 
 
@@ -27,6 +29,7 @@ const OrganizerEventDetailsPage = () => {
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [showParticipantsPanel, setShowParticipantsPanel] = useState(false);
   const [showBulkEmailModal, setShowBulkEmailModal] = useState(false);
+  const [showCreateChatModal, setShowCreateChatModal] = useState(false);
 
   const {data : eventData, isLoading, error} = useQuery({
     queryKey: ['organizerEventDetails', eventId],
@@ -34,6 +37,7 @@ const OrganizerEventDetailsPage = () => {
     enabled: !!eventId,
     retry: 1,
   })  
+
 
   const event = eventData as EventDetails;
 
@@ -54,6 +58,29 @@ const OrganizerEventDetailsPage = () => {
       queryClient.invalidateQueries({ queryKey: ['organizerEventDetails', eventId] });
     },
   });
+
+  const handleChatMessage = async () => {
+  try {
+      const response = await getRoomStatus(Number(eventId));
+
+    if (response.status === 200) {
+      navigate(`/dashboard/messages`);
+    } 
+    else if (response.status === 404) {
+      setShowCreateChatModal(true);
+    }
+  } catch (err) {
+    console.error('Error checking chat rooms:', err);
+    setShowCreateChatModal(true);
+  }
+};
+
+// Update the handleChatCreated function
+const handleChatCreated = (chatRoomId: number) => {
+  navigate(`/dashboard/events/${eventId}/chat/${chatRoomId}`);
+};
+
+
 
   const handleSaveEvent = (updatedEvent: Event) => {
     updateEventMutation.mutate(updatedEvent);
@@ -111,9 +138,7 @@ const OrganizerEventDetailsPage = () => {
     return timeString.substring(0, 5); // Extract HH:MM from HH:MM:SS
   };
 
-  const handleEditEvent = () => {
-    navigate(`/organizer/events/${eventId}/edit`);
-  };
+ 
 
 
   const handleSendEmail = () => {
@@ -371,13 +396,18 @@ const OrganizerEventDetailsPage = () => {
               
               <div className="space-y-3">
                 <button
-                  onClick={handleEditEvent}
-                  className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200 flex items-center gap-3"
+                  onClick={handleChatMessage}
+                  className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200 flex items-center gap-3 disabled:opacity-50"
+                  disabled={isLoading}
                 >
                   <MessageCircleMore className="w-5 h-5 text-gray-400" />
                   <div>
-                    <div className="font-medium text-gray-900">Message</div>
-                    <div className="text-sm text-gray-600">Deliver messages to participants</div>
+                    <div className="font-medium text-gray-900">
+                      {isLoading ? 'Loading...' : 'Chat with Participants'}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      Start group conversation for this event
+                    </div>
                   </div>
                 </button>
                 
@@ -443,7 +473,15 @@ const OrganizerEventDetailsPage = () => {
           </div>
         </div>
       </div>
-
+        {showCreateChatModal && event && (
+          <CreateChatModal
+            isOpen={showCreateChatModal}
+            onClose={() => setShowCreateChatModal(false)}
+            eventId={Number(eventId!)}
+            eventTitle={event.title}
+            onChatCreated={handleChatCreated}
+          />
+        )}
        <ViewParticipantsSlider 
         isOpen={showParticipantsPanel}
         onClose={() => setShowParticipantsPanel(false)}

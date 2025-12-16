@@ -19,8 +19,8 @@ export interface ChatMessage {
 }
 
 export interface ChatRoom {
-  id: number;
-  name: string;
+  roomId: number;
+  roomName: string;
   type: 'direct' | 'group' | 'event';
   eventTitle?: string;
   participantCount: number;

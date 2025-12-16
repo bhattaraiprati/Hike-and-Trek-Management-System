@@ -28,8 +28,8 @@ const ChatInterface = () => {
 
   // Fetch messages when a room is selected
   const { data: roomMessages = [], isLoading: messagesLoading } = useQuery({
-    queryKey: ['chatMessages', selectedRoom?.id],
-    queryFn: () => fetchChatMessages(selectedRoom!.id),
+    queryKey: ['chatMessages', selectedRoom?.roomId],
+    queryFn: () => fetchChatMessages(selectedRoom!.roomId),
     enabled: !!selectedRoom,
     staleTime: 0,
   });
@@ -85,7 +85,7 @@ const ChatInterface = () => {
     if (!stompClient || !selectedRoom || !isConnected) return;
 
     const subscription = stompClient.subscribe(
-      `/topic/room/${selectedRoom.id}`,
+      `/topic/room/${selectedRoom.roomId}`,
       (message: IMessage) => {
         const receivedMessage: ChatMessage = JSON.parse(message.body);
         
@@ -97,18 +97,18 @@ const ChatInterface = () => {
         }
 
         // Check if message is from current room
-        if (receivedMessage.chatRoomId === selectedRoom.id) {
+        if (receivedMessage.chatRoomId === selectedRoom.roomId) {
           setMessages(prev => [...prev, receivedMessage]);
           
           // Update last message in sidebar
           queryClient.setQueryData<ChatRoom[]>(['chatRooms'], (old) => 
             old?.map(room => 
-              room.id === selectedRoom.id 
+              room.roomId === selectedRoom.roomId 
                 ? { 
                     ...room, 
                     lastMessage: receivedMessage.parsedContent?.text || 'Image sent',
                     lastMessageTime: receivedMessage.timestamp,
-                    unreadCount: room.id === selectedRoom.id ? 0 : room.unreadCount + 1
+                    unreadCount: room.roomId === selectedRoom.roomId ? 0 : room.unreadCount + 1
                   } 
                 : room
             )
@@ -140,7 +140,7 @@ const ChatInterface = () => {
     // Mark room as read
     queryClient.setQueryData<ChatRoom[]>(['chatRooms'], (old) => 
       old?.map(r => 
-        r.id === room.id 
+        r.roomId === room.roomId 
           ? { ...r, unreadCount: 0 } 
           : r
       )
@@ -152,11 +152,11 @@ const ChatInterface = () => {
 
     const messagePayload = {
       content,
-      chatRoomId: selectedRoom.id,
+      chatRoomId: selectedRoom.roomId,
     };
 
     stompClient.publish({
-      destination: `/app/chat.send/${selectedRoom.id}`,
+      destination: `/app/chat.send/${selectedRoom.roomId}`,
       body: JSON.stringify(messagePayload),
     });
   };

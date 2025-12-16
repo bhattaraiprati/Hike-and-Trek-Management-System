@@ -54,6 +54,7 @@ const AppRoutes = () => {
           <Route path="profile" element={<HikerProfilePage />} />
           <Route path="event/:eventId" element={<EventDetailsPage />} />
           <Route path="event/:eventId/checkout" element={<BookingCheckoutPage />} />
+          <Route path="messages" element={<ChatInterface/>} />
           <Route path="booking-confirmation/:bookingId" element={<BookingConfirmationPage />} />
         </Route>
       </Route>

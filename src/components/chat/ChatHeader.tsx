@@ -21,7 +21,7 @@ const ChatHeader = ({ room, isConnected }: ChatHeaderProps) => {
           <div className="flex items-center gap-3">
             <div className="relative">
               <div className="w-10 h-10 bg-gradient-to-br from-[#1E3A5F] to-[#2a4a7a] rounded-full flex items-center justify-center text-white font-medium">
-                {room.name.charAt(0).toUpperCase()}
+                {room.roomName.charAt(0).toUpperCase()}
               </div>
               <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white ${
                 isConnected ? 'bg-green-500' : 'bg-gray-400'
@@ -29,7 +29,7 @@ const ChatHeader = ({ room, isConnected }: ChatHeaderProps) => {
             </div>
             
             <div>
-              <h2 className="font-bold text-gray-900">{room.name}</h2>
+              <h2 className="font-bold text-gray-900">{room.roomName}</h2>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Users className="w-3.5 h-3.5" />
                 <span>{room.participantCount} participants</span>
