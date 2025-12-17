@@ -52,7 +52,6 @@ const OrganizerSidebar: React.FC<SidebarProps> = ({
     { id: 'create-event',   label: 'Create New Event', icon: Map,               to: '/dashboard/register' },
     { id: 'Chat',       label: 'Chat',         icon: MessageSquare,     to: '/dashboard/messages' },
     { id: 'profile',        label: 'Profile / KYC',    icon: User,              to: '/dashboard/profile' },
-    { id: 'settings',       label: 'Settings',         icon: Settings,          to: '/dashboard/settings' },
   ];
 
   // Function to check if a menu item is active

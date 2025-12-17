@@ -1,5 +1,5 @@
 // components/chat/ChatRoomView.tsx
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import type { ChatMessage, ChatRoom } from '../../types/chatTypes';
 import ChatHeader from './ChatHeader';
@@ -18,13 +18,6 @@ const ChatRoomView = ({ room, messages, onSendMessage, isLoading, isConnected }:
   const { user } = useAuth();
   const [messageText, setMessageText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>;
-
-  // Auto-scroll to bottom when new messages arrive
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [messages]);
 
   const handleSendText = () => {
     if (!messageText.trim() || !user) return;
@@ -59,7 +52,7 @@ const ChatRoomView = ({ room, messages, onSendMessage, isLoading, isConnected }:
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-0"> {/* Add min-h-0 */}
         <div className="border-b border-gray-200 p-4">
           <div className="animate-pulse">
             <div className="h-6 bg-gray-200 rounded w-1/4 mb-2"></div>
@@ -84,7 +77,7 @@ const ChatRoomView = ({ room, messages, onSendMessage, isLoading, isConnected }:
   }
 
   return (
-    <div className="flex-1 flex flex-col">
+    <div className="flex-1 flex flex-col min-h-0"> {/* Add min-h-0 */}
       <ChatHeader 
         room={room} 
         isConnected={isConnected}
