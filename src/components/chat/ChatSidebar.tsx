@@ -53,7 +53,7 @@ const ChatSidebar = ({ rooms, selectedRoom, onSelectRoom, isLoading }: ChatSideb
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full  flex flex-col">
       {/* Header */}
       <div className="p-4 border-b border-gray-200">
         <h2 className="text-xl font-bold text-[#1E3A5F]">Messages</h2>

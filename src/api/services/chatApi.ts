@@ -69,3 +69,12 @@ export const createChatRoom = async (eventId: number, name: string) => {
   });
   return response.data;
 };
+
+export const registerUserToChatRoom = async (eventId: number) => {
+  const response = await axios.post(`${urlLink}/chat/rooms/create/participant/${eventId}`, null, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+  return response.data;
+};

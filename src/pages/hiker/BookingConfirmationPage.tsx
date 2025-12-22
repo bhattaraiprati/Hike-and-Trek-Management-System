@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Check, Calendar, MapPin, Users, CreditCard, Download, Printer, Share2, User, Mail, Phone, ShieldCheck, Clock } from 'lucide-react';
+import { Check, Calendar, MapPin, Users, CreditCard, Download, Printer, Share2, User, Mail, Phone, ShieldCheck, Clock, MessageCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchBookingDetails } from '../../api/services/Event';
+import { registerUserToChatRoom } from '../../api/services/chatApi';
+import { ErrorMessageToast } from '../../utils/Toastify.util';
 
 // Define the exact shape from your backend
 export interface EventRegistrationResponse {
@@ -72,19 +74,14 @@ const BookingConfirmationPage = () => {
 
   const handlePrint = () => window.print();
   const handleDownload = () => alert('PDF download coming soon!');
-  const handleShare = async () => {
-    if (navigator.share && booking) {
-      try {
-        await navigator.share({
-          title: `Booking Confirmed: ${booking.event.title}`,
-          text: `I've booked ${booking.event.title} on ${new Date(booking.event.date).toLocaleDateString()}`,
-          url: window.location.href,
-        });
-      } catch (err) {
-        navigator.clipboard.writeText(window.location.href);
-        alert('Link copied to clipboard!');
-      }
-    }
+
+  const handleChatRoom = async () => {
+    registerUserToChatRoom(booking?.event.id!).then(() => {
+      navigate(`/hiker-dashboard/messages`);
+    }).catch(() => {
+      ErrorMessageToast("Failed to open chat room. Please try again.");
+    });
+
   };
 
   const getPaymentMethodIcon = (method: string) => {
@@ -161,11 +158,9 @@ const BookingConfirmationPage = () => {
           <button onClick={handleDownload} className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2">
             <Download className="w-4 h-4" /> Download PDF
           </button>
-          <button onClick={handlePrint} className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2">
-            <Printer className="w-4 h-4" /> Print
-          </button>
-          <button onClick={handleShare} className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2">
-            <Share2 className="w-4 h-4" /> Share
+          
+          <button onClick={handleChatRoom} className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2">
+            < MessageCircle className="w-4 h-4" /> Open Chat
           </button>
           <button onClick={() => navigate('/hiker-dashboard/my-bookings')} className="px-6 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4a7a]">
             My Bookings
@@ -282,6 +277,17 @@ const BookingConfirmationPage = () => {
 
           {/* Right Column */}
           <div className="space-y-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h5 className="font-medium text-blue-800 mb-2 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4" /> Important
+              </h5>
+              <ul className="text-sm text-blue-700 space-y-1">
+                <li>• Arrive 30 mins early</li>
+                <li>• Show QR code or Booking ID</li>
+                <li>• Bring required gear</li>
+                <li>• Contact organizer if delayed</li>
+              </ul>
+            </div>
             {/* Summary */}
             <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-[#1E3A5F] mb-4">Booking Summary</h3>
@@ -337,17 +343,7 @@ const BookingConfirmationPage = () => {
               </div>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h5 className="font-medium text-blue-800 mb-2 flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4" /> Important
-              </h5>
-              <ul className="text-sm text-blue-700 space-y-1">
-                <li>• Arrive 30 mins early</li>
-                <li>• Show QR code or Booking ID</li>
-                <li>• Bring required gear</li>
-                <li>• Contact organizer if delayed</li>
-              </ul>
-            </div>
+            
           </div>
         </div>
 

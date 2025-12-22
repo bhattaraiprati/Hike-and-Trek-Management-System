@@ -1,6 +1,5 @@
-
 import { Image as ImageIcon, X } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ChatMessage } from '../../types/chatTypes';
 
 interface MessageListProps {
@@ -22,6 +21,10 @@ const MessageList = ({ messages, currentUserId, messagesEndRef }: MessageListPro
     return current.senderId === previous.senderId;
   };
 
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, messagesEndRef]);
+
   const shouldShowHeader = (current: ChatMessage, previous?: ChatMessage) => {
     if (!previous) return true;
     if (current.senderId !== previous.senderId) return true;
@@ -30,6 +33,9 @@ const MessageList = ({ messages, currentUserId, messagesEndRef }: MessageListPro
     const previousTime = new Date(previous.timestamp).getTime();
     return (currentTime - previousTime) > 5 * 60 * 1000; // 5 minutes
   };
+
+  // Reverse messages to show oldest first, newest last
+  const sortedMessages = [...messages].reverse();
 
   return (
     <>
@@ -47,10 +53,10 @@ const MessageList = ({ messages, currentUserId, messagesEndRef }: MessageListPro
           </div>
         ) : (
           <div className="space-y-3">
-            {messages.map((message, index) => {
+            {sortedMessages.map((message, index) => {
               const isOwnMessage = message.senderId === currentUserId;
-              const showHeader = shouldShowHeader(message, messages[index - 1]);
-              const showAvatar = showHeader || !isSameSender(message, messages[index - 1]);
+              const showHeader = shouldShowHeader(message, sortedMessages[index - 1]);
+              const showAvatar = showHeader || !isSameSender(message, sortedMessages[index - 1]);
 
               return (
                 <div

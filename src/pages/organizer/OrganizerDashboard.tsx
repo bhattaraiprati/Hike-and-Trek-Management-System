@@ -1,155 +1,17 @@
 import React from 'react';
-
-// Types
-interface Event {
-  id: string;
-  title: string;
-  date: string;
-  time: string;
-  difficulty: 'Easy' | 'Moderate' | 'Hard';
-  participants: number;
-  maxParticipants: number;
-  image: string;
-}
-
-interface Registration {
-  id: string;
-  name: string;
-  event: string;
-  date: string;
-  contact: string;
-  status: 'Confirmed' | 'Pending';
-}
-
-interface Review {
-  id: string;
-  rating: number;
-  comment: string;
-  author: string;
-  date: string;
-}
-
-interface Notification {
-  id: string;
-  type: 'system' | 'admin' | 'alert';
-  title: string;
-  message: string;
-  time: string;
-}
+import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '../../context/AuthContext';
+import { getOrganizerDashboard, type DashboardData } from '../../api/services/Dashboard';
 
 const OrganizerDashboard: React.FC = () => {
-  // Mock data - replace with actual API calls
-  const organizerName = "Alex Morgan";
-  
-  const stats = {
-    totalEvents: 12,
-    totalParticipants: 348,
-    newReviews: 8,
-    totalEarnings: 12560
-  };
+  const { user } = useAuth();
 
-  const upcomingEvents: Event[] = [
-    {
-      id: '1',
-      title: 'Sunrise Mountain Trail',
-      date: 'Nov 25, 2024',
-      time: '05:30 AM',
-      difficulty: 'Moderate',
-      participants: 23,
-      maxParticipants: 40,
-      image: '/api/placeholder/300/200'
-    },
-    {
-      id: '2',
-      title: 'Forest Waterfall Hike',
-      date: 'Nov 28, 2024',
-      time: '08:00 AM',
-      difficulty: 'Easy',
-      participants: 18,
-      maxParticipants: 25,
-      image: '/api/placeholder/300/200'
-    },
-    {
-      id: '3',
-      title: 'Alpine Summit Challenge',
-      date: 'Dec 2, 2024',
-      time: '06:00 AM',
-      difficulty: 'Hard',
-      participants: 12,
-      maxParticipants: 15,
-      image: '/api/placeholder/300/200'
-    }
-  ];
-
-  const recentRegistrations: Registration[] = [
-    {
-      id: '1',
-      name: 'Sarah Johnson',
-      event: 'Sunrise Mountain Trail',
-      date: 'Nov 20, 2024',
-      contact: 'sarah@email.com',
-      status: 'Confirmed'
-    },
-    {
-      id: '2',
-      name: 'Mike Chen',
-      event: 'Forest Waterfall Hike',
-      date: 'Nov 19, 2024',
-      contact: 'mike@email.com',
-      status: 'Pending'
-    },
-    {
-      id: '3',
-      name: 'Emma Davis',
-      event: 'Alpine Summit Challenge',
-      date: 'Nov 18, 2024',
-      contact: 'emma@email.com',
-      status: 'Confirmed'
-    }
-  ];
-
-  const reviews: Review[] = [
-    {
-      id: '1',
-      rating: 5,
-      comment: 'Amazing trail and excellent guidance! Will definitely join again.',
-      author: 'James Wilson',
-      date: '2 days ago'
-    },
-    {
-      id: '2',
-      rating: 4,
-      comment: 'Beautiful scenery and well-organized event.',
-      author: 'Lisa Brown',
-      date: '3 days ago'
-    }
-  ];
-
-  const notifications: Notification[] = [
-    {
-      id: '1',
-      type: 'alert',
-      title: 'Weather Alert',
-      message: 'Heavy rain predicted for Forest Waterfall Hike',
-      time: '2 hours ago'
-    },
-    {
-      id: '2',
-      type: 'admin',
-      title: 'New Feature',
-      message: 'Participant messaging system is now available',
-      time: '1 day ago'
-    },
-    {
-      id: '3',
-      type: 'system',
-      title: 'System Update',
-      message: 'Dashboard performance improvements completed',
-      time: '2 days ago'
-    }
-  ];
-
-  const chartData = [30, 45, 35, 55, 40, 60, 75, 65, 70, 80, 65, 85];
+  // Fetch dashboard data
+  const { data: dashboardData, isLoading, isError } = useQuery<DashboardData>({
+    queryKey: ['organizerDashboard', user?.id],
+    queryFn: () => getOrganizerDashboard(Number(user?.id || 0)),
+    enabled: !!user?.id,
+  });
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -172,6 +34,63 @@ const OrganizerDashboard: React.FC = () => {
       default: return '📢';
     }
   };
+
+  // Calculate average rating from reviews
+  const averageRating = dashboardData?.reviews.length
+    ? (dashboardData.reviews.reduce((sum, r) => sum + r.rating, 0) / dashboardData.reviews.length).toFixed(1)
+    : '0.0';
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#F8F9FA] font-sans">
+        <div className="p-6 max-w-7xl mx-auto">
+          <div className="animate-pulse space-y-8">
+            {/* Header skeleton */}
+            <div className="h-12 bg-gray-200 rounded w-1/3 mb-4"></div>
+            <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+            
+            {/* Stats skeleton */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-white rounded-xl border border-gray-200 p-6">
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                  <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              ))}
+            </div>
+            
+            {/* Content skeleton */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-6">
+                <div className="h-64 bg-gray-200 rounded-xl"></div>
+                <div className="h-96 bg-gray-200 rounded-xl"></div>
+              </div>
+              <div className="space-y-6">
+                <div className="h-64 bg-gray-200 rounded-xl"></div>
+                <div className="h-64 bg-gray-200 rounded-xl"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError || !dashboardData) {
+    return (
+      <div className="min-h-screen bg-[#F8F9FA] font-sans">
+        <div className="p-6 max-w-7xl mx-auto">
+          <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+            <h2 className="text-xl font-semibold text-red-800 mb-2">Error Loading Dashboard</h2>
+            <p className="text-red-600">Failed to load dashboard data. Please try again later.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const { stats, upcomingEvents, recentRegistrations, reviews, notifications } = dashboardData;
+  const organizerName = user?.name || 'Organizer';
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] font-sans">
@@ -224,7 +143,12 @@ const OrganizerDashboard: React.FC = () => {
               </div>
               
               <div className="flex space-x-4 overflow-x-auto pb-4">
-                {upcomingEvents.map((event) => (
+                {upcomingEvents.length === 0 ? (
+                  <div className="w-full text-center py-8 text-gray-500">
+                    No upcoming events
+                  </div>
+                ) : (
+                  upcomingEvents.map((event) => (
                   <div 
                     key={event.id}
                     className="min-w-[280px] bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow"
@@ -260,7 +184,8 @@ const OrganizerDashboard: React.FC = () => {
                       </button>
                     </div>
                   </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
 
@@ -282,7 +207,14 @@ const OrganizerDashboard: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {recentRegistrations.map((reg) => (
+                    {recentRegistrations.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="py-8 text-center text-gray-500">
+                          No recent registrations
+                        </td>
+                      </tr>
+                    ) : (
+                      recentRegistrations.map((reg) => (
                       <tr key={reg.id} className="border-b border-gray-100 hover:bg-gray-50">
                         <td className="py-3 font-body text-[#1B4332]">{reg.name}</td>
                         <td className="py-3 font-body text-[#495057] text-sm">{reg.event}</td>
@@ -294,7 +226,8 @@ const OrganizerDashboard: React.FC = () => {
                           </span>
                         </td>
                       </tr>
-                    ))}
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -304,29 +237,7 @@ const OrganizerDashboard: React.FC = () => {
           {/* Right Column */}
           <div className="space-y-6">
             
-            {/* Event Performance Chart */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-              <h2 className="font-heading text-xl font-semibold text-[#1B4332] mb-6">
-                Event Performance
-              </h2>
-              
-              <div className="h-48 flex items-end justify-between space-x-1">
-                {chartData.map((value, index) => (
-                  <div key={index} className="flex flex-col items-center flex-1">
-                    <div 
-                      className="w-full bg-[#2C5F8D] rounded-t transition-all hover:bg-[#1E3A5F]"
-                      style={{ height: `${value}%` }}
-                    />
-                    <span className="font-body text-xs text-[#495057] mt-2">
-                      {index + 1}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <p className="font-body text-sm text-[#495057] text-center mt-4">
-                Registration trend over last 12 events
-              </p>
-            </div>
+           
 
             {/* Review Highlights */}
             <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
@@ -335,13 +246,18 @@ const OrganizerDashboard: React.FC = () => {
                   Reviews
                 </h2>
                 <div className="flex items-center bg-[#1B4332] text-white px-3 py-1 rounded-full">
-                  <span className="font-heading font-semibold mr-1">4.8</span>
+                  <span className="font-heading font-semibold mr-1">{averageRating}</span>
                   <span>⭐</span>
                 </div>
               </div>
               
               <div className="space-y-4">
-                {reviews.map((review) => (
+                {reviews.length === 0 ? (
+                  <div className="text-center py-4 text-gray-500">
+                    No reviews yet
+                  </div>
+                ) : (
+                  reviews.map((review) => (
                   <div key={review.id} className="border-l-4 border-[#2D5016] pl-4 py-1">
                     <div className="flex items-center mb-1">
                       <span className="font-body text-sm text-[#495057] mr-2">
@@ -354,7 +270,8 @@ const OrganizerDashboard: React.FC = () => {
                     </p>
                     <p className="font-body text-xs text-[#495057]">- {review.author}</p>
                   </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
 
@@ -365,7 +282,12 @@ const OrganizerDashboard: React.FC = () => {
               </h2>
               
               <div className="space-y-3">
-                {notifications.map((notification) => (
+                {notifications.length === 0 ? (
+                  <div className="text-center py-4 text-gray-500">
+                    No notifications
+                  </div>
+                ) : (
+                  notifications.map((notification) => (
                   <div 
                     key={notification.id}
                     className="flex items-start p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
@@ -385,7 +307,8 @@ const OrganizerDashboard: React.FC = () => {
                       </p>
                     </div>
                   </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           </div>

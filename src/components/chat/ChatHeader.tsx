@@ -29,7 +29,7 @@ const ChatHeader = ({ room, isConnected }: ChatHeaderProps) => {
             </div>
             
             <div>
-              <h2 className="font-bold text-gray-900">{room.roomName}</h2>
+              <p className="font-bold text-lg text-gray-900">{room.roomName}</p>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Users className="w-3.5 h-3.5" />
                 <span>{room.participantCount} participants</span>

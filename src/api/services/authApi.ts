@@ -31,7 +31,7 @@ interface OTPVerification {
 interface ResendOTP {
   email: string;
 }
-interface uploadImage{
+export interface uploadImage{
   id:String,
   image: String
 }
