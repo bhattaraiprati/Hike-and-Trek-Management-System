@@ -54,6 +54,8 @@ const OrganizerHeader: React.FC<HeaderProps> = ({ onMenuToggle }) => {
     logout();
   };
 
+  const { user } = useAuth();
+
   const searchRef = useRef<HTMLDivElement>(null);
   const notificationsRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -197,10 +199,10 @@ const OrganizerHeader: React.FC<HeaderProps> = ({ onMenuToggle }) => {
                 className="flex items-center space-x-3 p-1 rounded-2xl hover:bg-gray-100 transition-all duration-300"
               >
                 <div className="w-8 h-8 bg-gradient-to-br from-[#1B4332] to-[#2C5F8D] rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                  JS
+                  {user?.name.split(' ').map(n => n[0]).join('')}
                 </div>
                 <div className="hidden md:block text-left">
-                  <p className="text-sm font-medium text-gray-900">John Smith</p>
+                  <p className="text-sm font-medium text-gray-900">{user?.name}</p>
                   <p className="text-xs text-gray-500">Organizer</p>
                 </div>
                 <ChevronDown 
@@ -214,8 +216,8 @@ const OrganizerHeader: React.FC<HeaderProps> = ({ onMenuToggle }) => {
               {isUserMenuOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden z-50">
                   <div className="p-4 border-b border-gray-200">
-                    <p className="text-sm font-medium text-gray-900">John Smith</p>
-                    <p className="text-sm text-gray-500">john@example.com</p>
+                    <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+                    <p className="text-sm text-gray-500">{user?.email}</p>
                   </div>
                   
                   <div className="p-2">

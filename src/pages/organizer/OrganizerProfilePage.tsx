@@ -11,40 +11,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 
 import { SuccesfulMessageToast, ErrorMessageToast } from '../../utils/Toastify.util';
-import { getOrganizerProfile, updateOrganizerProfile } from '../../api/services/Profile';
-import { uploadImage } from '../../api/services/authApi';
-
-interface OrganizerProfile {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  bio: string;
-  location: string;
-  website?: string;
-  experienceYears: number;
-  specialization: string[];
-  profileImage?: string;
-  bannerImage?: string;
-  totalEvents: number;
-  completedEvents: number;
-  upcomingEvents: number;
-  totalParticipants: number;
-  averageRating: number;
-  memberSince: string;
-  verificationStatus: 'VERIFIED' | 'PENDING' | 'UNVERIFIED';
-  socialLinks?: {
-    facebook?: string;
-    instagram?: string;
-    twitter?: string;
-    linkedin?: string;
-  };
-  stats: {
-    totalRevenue: number;
-    repeatClients: number;
-    satisfactionRate: number;
-  };
-}
+import {
+  getOrganizerProfile,
+  updateOrganizerProfile,
+  type OrganizerProfile,
+} from "../../api/services/Profile";
 
 const OrganizerProfilePage = () => {
   const { user } = useAuth();
@@ -52,7 +23,7 @@ const OrganizerProfilePage = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bannerFileInputRef = useRef<HTMLInputElement>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [editMode, setEditMode] = useState<'profile' | 'password' | null>(null);
+  const [editMode, setEditMode] = useState<"profile" | "password" | null>(null);
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [bannerImage, setBannerImage] = useState<File | null>(null);
   const [profileData, setProfileData] = useState<OrganizerProfile | null>(null);
@@ -63,6 +34,29 @@ const OrganizerProfilePage = () => {
     queryFn: () => getOrganizerProfile(Number(user?.id || 0)),
     enabled: !!user?.id,
   });
+
+  // Helper to upload a single image to Cloudinary
+  const uploadImageToCloudinary = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "Trek Sathi");
+    formData.append("cloud_name", "dtwunctra");
+
+    const res = await fetch(
+      "https://api.cloudinary.com/v1_1/dtwunctra/image/upload",
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    if (!res.ok) {
+      throw new Error("Failed to upload image");
+    }
+
+    const data = await res.json();
+    return data.secure_url || data.url;
+  };
 
   // Update profile mutation
   const updateProfileMutation = useMutation({
@@ -78,45 +72,12 @@ const OrganizerProfilePage = () => {
       ErrorMessageToast('Failed to update profile');
     },
   });
-  const uploadImageMutation = () =>{
-
-  }
-
-  // Upload image mutation
-//   const uploadImageMutation = useMutation({
-//     mutationFn: (formData: FormData) => uploadImage(formData:any),
-//     onSuccess: (data, variables) => {
-//       const isProfile = variables.get('type') === 'profile';
-//       const updateData = isProfile 
-//         ? { profileImage: data.url }
-//         : { bannerImage: data.url };
-      
-//       updateProfileMutation.mutate(updateData);
-//     },
-//     onError: () => {
-//       ErrorMessageToast('Failed to upload image');
-//     },
-//   });
 
   useEffect(() => {
     if (organizerProfile) {
       setProfileData(organizerProfile);
     }
   }, [organizerProfile]);
-
-  const handleImageUpload = (file: File, type: 'profile' | 'banner') => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', 'Trek Sathi');
-    formData.append('cloud_name', 'dtwunctra');
-    formData.append('type', type);
-
-    if (type === 'profile') {
-    //   uploadImageMutation.mutate(formData);
-    } else {
-    //   uploadImageMutation.mutate(formData);
-    }
-  };
 
   const handleProfileImageClick = () => {
     fileInputRef.current?.click();
@@ -128,14 +89,22 @@ const OrganizerProfilePage = () => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'profile' | 'banner') => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (type === 'profile') {
-        setProfileImage(file);
-        handleImageUpload(file, 'profile');
-      } else {
-        setBannerImage(file);
-        handleImageUpload(file, 'banner');
-      }
+    if (!file || !profileData) return;
+
+    const previewUrl = URL.createObjectURL(file);
+
+    if (type === 'profile') {
+      setProfileImage(file);
+      setProfileData({
+        ...profileData,
+        profileImage: previewUrl,
+      });
+    } else {
+      setBannerImage(file);
+      setProfileData({
+        ...profileData,
+        bannerImage: previewUrl,
+      });
     }
   };
 
@@ -178,15 +147,34 @@ const OrganizerProfilePage = () => {
     }
   };
 
-  const handleSave = () => {
-    if (profileData) {
-      updateProfileMutation.mutate(profileData);
+  const handleSave = async () => {
+    if (!profileData) return;
+
+    try {
+      let profileImageUrl = profileData.profileImage;
+      let bannerImageUrl = profileData.bannerImage;
+
+      // Upload selected images (if any) to Cloudinary first
+      if (profileImage) {
+        profileImageUrl = await uploadImageToCloudinary(profileImage);
+      }
+      if (bannerImage) {
+        bannerImageUrl = await uploadImageToCloudinary(bannerImage);
+      }
+
+      updateProfileMutation.mutate({
+        ...profileData,
+        profileImage: profileImageUrl,
+        bannerImage: bannerImageUrl,
+      });
+    } catch (error) {
+      ErrorMessageToast('Failed to upload images');
     }
   };
 
   const getVerificationBadge = (status: string) => {
     switch (status) {
-      case 'VERIFIED':
+      case 'SUCCESS':
         return {
           color: 'bg-green-100 text-green-800',
           icon: <CheckCircle className="w-4 h-4" />,
@@ -279,9 +267,9 @@ const OrganizerProfilePage = () => {
         </div>
 
         {/* Profile Header */}
-        <div className="relative px-4 md:px-8">
+        <div className="relative flex flex-col md:flex-row px-4 md:px-8">
           {/* Profile Image */}
-          <div className="absolute -top-20 md:-top-24 left-4 md:left-8">
+          <div className="absolute -top-20 md:-top-34 left-4 md:left-8">
             <div className="relative">
               <div className="w-32 h-32 md:w-40 md:h-40 bg-gradient-to-br from-[#1E3A5F] to-[#2a4a7a] rounded-full border-8 border-white overflow-hidden">
                 {profileData?.profileImage ? (
@@ -317,7 +305,7 @@ const OrganizerProfilePage = () => {
           </div>
 
           {/* Profile Info */}
-          <div className="pt-20 md:pt-24 pl-0 md:pl-48">
+          <div className="pt-10 md:pt-0 pl-0 md:pl-48">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <div className="flex items-center gap-3 mb-2">
@@ -354,6 +342,8 @@ const OrganizerProfilePage = () => {
                         setIsEditing(false);
                         setEditMode(null);
                         setProfileData(organizerProfile || null);
+                        setProfileImage(null);
+                        setBannerImage(null);
                       }}
                       className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
                     >
@@ -589,6 +579,40 @@ const OrganizerProfilePage = () => {
 
           {/* Right Column - Stats & Quick Info */}
           <div className="space-y-8">
+
+              {/* Verification Status */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+              <h2 className="text-xl font-bold text-[#1E3A5F] mb-6 flex items-center gap-2">
+                <Shield className="w-5 h-5" />
+                Verification
+              </h2>
+              
+              <div className="space-y-4">
+                <div className={`p-4 rounded-lg ${verification.color} flex items-center gap-3`}>
+                  {verification.icon}
+                  <div>
+                    <div className="font-medium">{verification.text}</div>
+                    <div className="text-sm opacity-90 mt-1">
+                    {profileData?.verificationStatus === 'SUCCESS' 
+                        ? 'Your account is verified and trusted'
+                        : profileData?.verificationStatus === 'PENDING'
+                        ? 'Verification under review'
+                        : 'Complete profile to get verified'}
+                    </div>
+                  </div>
+                </div>
+                
+                {profileData?.verificationStatus !== 'SUCCESS' && (
+                  <button className="w-full px-4 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4a7a] transition-colors flex items-center justify-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    Request Verification
+                  </button>
+                )}
+              </div>
+            </div>
+
+
+
             {/* Stats Overview */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
               <h2 className="text-xl font-bold text-[#1E3A5F] mb-6 flex items-center gap-2">
@@ -630,20 +654,11 @@ const OrganizerProfilePage = () => {
                   </div>
                 </div>
                 
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <div className="text-sm font-medium text-gray-900 mb-1">Satisfaction Rate</div>
-                  <div className="flex items-center justify-between">
-                    <div className="text-2xl font-bold text-[#1E3A5F]">
-                      {profileData?.stats?.satisfactionRate || 0}%
-                    </div>
-                    <TrendingUp className="w-5 h-5 text-green-500" />
-                  </div>
-                </div>
               </div>
             </div>
 
             {/* Quick Info */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+            {/* <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
               <h2 className="text-xl font-bold text-[#1E3A5F] mb-6 flex items-center gap-2">
                 <Award className="w-5 h-5" />
                 Organizer Info
@@ -670,7 +685,7 @@ const OrganizerProfilePage = () => {
                   <span className="font-bold text-[#1E3A5F]">${profileData?.stats?.totalRevenue?.toLocaleString() || '0'}</span>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* Social Links Display (non-editing mode) */}
             {!isEditing && profileData?.socialLinks && Object.values(profileData.socialLinks).some(Boolean) && (
@@ -711,36 +726,7 @@ const OrganizerProfilePage = () => {
               </div>
             )}
 
-            {/* Verification Status */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-[#1E3A5F] mb-6 flex items-center gap-2">
-                <Shield className="w-5 h-5" />
-                Verification
-              </h2>
-              
-              <div className="space-y-4">
-                <div className={`p-4 rounded-lg ${verification.color} flex items-center gap-3`}>
-                  {verification.icon}
-                  <div>
-                    <div className="font-medium">{verification.text}</div>
-                    <div className="text-sm opacity-90 mt-1">
-                      {profileData?.verificationStatus === 'VERIFIED' 
-                        ? 'Your account is verified and trusted'
-                        : profileData?.verificationStatus === 'PENDING'
-                        ? 'Verification under review'
-                        : 'Complete profile to get verified'}
-                    </div>
-                  </div>
-                </div>
-                
-                {profileData?.verificationStatus !== 'VERIFIED' && (
-                  <button className="w-full px-4 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4a7a] transition-colors flex items-center justify-center gap-2">
-                    <FileText className="w-4 h-4" />
-                    Request Verification
-                  </button>
-                )}
-              </div>
-            </div>
+            
           </div>
         </div>
       </div>

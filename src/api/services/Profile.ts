@@ -1,6 +1,5 @@
-// api/services/Organizer.ts
-
 import axios from "axios";
+import { urlLink } from "../axiosConfig";
 
 export interface OrganizerProfile {
   id: number;
@@ -20,7 +19,7 @@ export interface OrganizerProfile {
   totalParticipants: number;
   averageRating: number;
   memberSince: string;
-  verificationStatus: 'VERIFIED' | 'PENDING' | 'UNVERIFIED';
+  verificationStatus: "SUCCESS" | "PENDING" | "UNVERIFIED";
   socialLinks?: {
     facebook?: string;
     instagram?: string;
@@ -34,24 +33,60 @@ export interface OrganizerProfile {
   };
 }
 
-export const getOrganizerProfile = async (organizerId: number): Promise<OrganizerProfile> => {
-  const response = await axios.get(`/api/organizers/${organizerId}/profile`);
-  return response.data;
+// Map backend status (e.g. APPROVED/PENDING/REJECTED) to UI enum
+const mapVerificationStatus = (
+  status: string
+): OrganizerProfile["verificationStatus"] => {
+  if (status === "APPROVED" || status === "SUCCESS") return "SUCCESS";
+  if (status === "PENDING") return "PENDING";
+  return "UNVERIFIED";
 };
 
-export const updateOrganizerProfile = async (organizerId: number, data: Partial<OrganizerProfile>): Promise<OrganizerProfile> => {
-  const response = await axios.put(`/api/organizers/${organizerId}/profile`, data);
-  return response.data;
+export const getOrganizerProfile = async (
+  userId: number
+): Promise<OrganizerProfile> => {
+  const { data } = await axios.get<any>(
+    `${urlLink}/auth/organizer/profile/${userId}`
+  );
+
+  return {
+    ...data,
+    specialization: data.specialization ?? [],
+    stats: data.stats ?? {
+      totalRevenue: 0,
+      repeatClients: 0,
+      satisfactionRate: 0,
+    },
+    verificationStatus: mapVerificationStatus(data.verificationStatus),
+  };
 };
 
-export const getOrganizerStats = async (organizerId: number) => {
-  const response = await axios.get(`/api/organizers/${organizerId}/stats`);
-  return response.data;
-};
+export const updateOrganizerProfile = async (
+  userId: number,
+  payload: Partial<OrganizerProfile>
+): Promise<OrganizerProfile> => {
+  const body = {
+    name: payload.name,
+    phone: payload.phone,
+    bio: payload.bio,
+    location: payload.location,
+    profileImage: payload.profileImage,
+    bannerImage: payload.bannerImage,
+  };
 
-export const getOrganizerEvents = async (organizerId: number, status?: string) => {
-  const response = await axios.get(`/api/organizers/${organizerId}/events`, {
-    params: { status }
-  });
-  return response.data;
+  const { data } = await axios.put<any>(
+    `${urlLink}/auth/organizer/profile/${userId}`,
+    body
+  );
+
+  return {
+    ...data,
+    specialization: data.specialization ?? [],
+    stats: data.stats ?? {
+      totalRevenue: 0,
+      repeatClients: 0,
+      satisfactionRate: 0,
+    },
+    verificationStatus: mapVerificationStatus(data.verificationStatus),
+  };
 };
