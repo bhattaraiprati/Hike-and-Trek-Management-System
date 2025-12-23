@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
+import ConfirmLogoutModal from '../../common/ConfirmLogoutModal';
 
 interface SidebarProps {
   isMobileOpen: boolean;
@@ -29,7 +30,8 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const [isMobile, setIsMobile] = useState(false);
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   // Detect mobile & auto-close on resize
   useEffect(() => {
@@ -141,23 +143,30 @@ const Sidebar: React.FC<SidebarProps> = ({
               </button>
             </div>
 
-            {/* Nav */}
+          {/* Nav */}
             <nav className="flex-1 p-4">
               <div className="space-y-2">{menuItems.map(renderMenuItem)}</div>
             </nav>
 
-            {/* User */}
-            <div className="p-4 border-t border-gray-100">
-              <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
-                <div className="w-10 h-10 bg-gradient-to-br from-[#1B4332] to-[#1E3A5F] rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                  JS
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 truncate">John Smith</p>
-                  <p className="text-xs text-gray-500 truncate">Pro Hiker</p>
-                </div>
+          {/* User & Logout */}
+          <div className="p-4 border-t border-gray-100 space-y-3">
+            <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
+              <div className="w-10 h-10 bg-gradient-to-br from-[#1B4332] to-[#1E3A5F] rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                {user?.name.split(' ').map(n => n[0]).join('')}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-900 truncate">{user?.name}</p>
+                <p className="text-xs text-gray-500 truncate">Pro Hiker</p>
               </div>
             </div>
+            <button
+              type="button"
+              onClick={() => setIsLogoutModalOpen(true)}
+              className="w-full px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors duration-200"
+            >
+              Logout
+            </button>
+          </div>
           </div>
         </aside>
       </>
@@ -203,18 +212,25 @@ const Sidebar: React.FC<SidebarProps> = ({
           <div className="space-y-2">{menuItems.map(renderMenuItem)}</div>
         </nav>
 
-        {/* User Info */}
+        {/* User Info & Logout */}
         {!isCollapsed && (
-          <div className="p-4 border-t border-gray-100">
+          <div className="p-4 border-t border-gray-100 space-y-3">
             <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
               <div className="w-10 h-10 bg-gradient-to-br from-[#1B4332] to-[#1E3A5F] rounded-full flex items-center justify-center text-white font-semibold text-sm">
-              {user?.name.split(' ').map(n => n[0]).join('')}
+                {user?.name.split(' ').map(n => n[0]).join('')}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-gray-900 truncate">{user?.name}</p>
                 <p className="text-xs text-gray-500 truncate">Pro Hiker</p>
               </div>
             </div>
+            <button
+              type="button"
+              onClick={() => setIsLogoutModalOpen(true)}
+              className="w-full px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors duration-200"
+            >
+              Logout
+            </button>
           </div>
         )}
 
@@ -226,6 +242,15 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
         )}
       </div>
+
+      <ConfirmLogoutModal
+        isOpen={isLogoutModalOpen}
+        onCancel={() => setIsLogoutModalOpen(false)}
+        onConfirm={async () => {
+          setIsLogoutModalOpen(false);
+          await logout();
+        }}
+      />
     </aside>
   );
 };

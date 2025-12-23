@@ -198,7 +198,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("token");
     setAuthToken(null);
-    // window.location.reload();
+    window.location.href = "/login";
   };
 
 
