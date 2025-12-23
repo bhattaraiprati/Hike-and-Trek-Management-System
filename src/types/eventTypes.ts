@@ -1,11 +1,4 @@
-export type EventStatus = 
-  | 'PENDING' 
-  | 'APPROVED' 
-  | 'REJECTED' 
-  | 'ACTIVE' 
-  | 'INACTIVE' 
-  | 'CANCELLED' 
-  | 'COMPLETED';
+
 
 export type DifficultyLevel = 'EASY' | 'MODERATE' | 'DIFFICULT' | 'EXTREME';
 export type Difficulty = DifficultyLevel;
@@ -63,6 +56,13 @@ export interface EventDetails extends Event {
     rating: number;
   };
 }
+
+export type EventStatus = 
+  | 'DRAFT'
+  | 'ACTIVE' 
+  | 'INACTIVE' 
+  | 'COMPLETED'
+  | 'CANCELLED';
 
 export interface EventRegistration {
   id: number;

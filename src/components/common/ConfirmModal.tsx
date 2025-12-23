@@ -4,12 +4,18 @@ interface ConfirmLogoutModalProps {
   isOpen: boolean;
   onConfirm: () => void;
   onCancel: () => void;
+  title: string;
+  message: string;
+  buttonText: string;
 }
 
-const ConfirmLogoutModal: React.FC<ConfirmLogoutModalProps> = ({
+const ConfirmModal: React.FC<ConfirmLogoutModalProps> = ({
   isOpen,
   onConfirm,
   onCancel,
+  title,
+  message,
+  buttonText
 }) => {
   if (!isOpen) return null;
 
@@ -17,11 +23,10 @@ const ConfirmLogoutModal: React.FC<ConfirmLogoutModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full mx-4 p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-2">
-          Are you sure you want to logout?
+          {title}
         </h2>
         <p className="text-sm text-gray-600 mb-6">
-          You will be signed out of your account and need to log in again to
-          continue.
+          {message}
         </p>
         <div className="flex justify-end gap-3">
           <button
@@ -36,7 +41,7 @@ const ConfirmLogoutModal: React.FC<ConfirmLogoutModalProps> = ({
             onClick={onConfirm}
             className="px-4 py-2 rounded-lg bg-red-600 text-sm font-medium text-white hover:bg-red-700"
           >
-            Logout
+            {buttonText}
           </button>
         </div>
       </div>
@@ -44,6 +49,6 @@ const ConfirmLogoutModal: React.FC<ConfirmLogoutModalProps> = ({
   );
 };
 
-export default ConfirmLogoutModal;
+export default ConfirmModal;
 
 

@@ -11,7 +11,8 @@ import {
   Menu
 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
-import ConfirmLogoutModal from '../../common/ConfirmLogoutModal';
+import ConfirmLogoutModal from '../../common/ConfirmModal';
+import ConfirmModal from '../../common/ConfirmModal';
 
 interface HeaderProps {
   onMenuToggle?: () => void;
@@ -255,10 +256,15 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
         </div>
       </div>
 
-      <ConfirmLogoutModal
+      <ConfirmModal
+
         isOpen={isLogoutModalOpen}
         onCancel={() => setIsLogoutModalOpen(false)}
         onConfirm={handleConfirmLogout}
+        title=" Are you sure you want to logout?"
+        message=" You will be signed out of your account and need to log in again to
+          continue."
+          buttonText="Logout"
       />
     </nav>
   );

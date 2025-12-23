@@ -11,7 +11,8 @@ import { getProfileUrl, uploadImage } from '../../api/services/authApi';
 import { useQuery } from '@tanstack/react-query';
 import { fetchAllEventsByUserId, getUpcommingEvents } from '../../api/services/Event';
 import { useNavigate } from 'react-router-dom';
-import ConfirmLogoutModal from '../../components/common/ConfirmLogoutModal';
+import ConfirmLogoutModal from '../../components/common/ConfirmModal';
+import ConfirmModal from '../../components/common/ConfirmModal';
 
 
 interface UpcomingEvent {
@@ -748,13 +749,17 @@ const HikerProfilePage = () => {
       </div>
     </div>
 
-      <ConfirmLogoutModal
+      <ConfirmModal
         isOpen={isLogoutModalOpen}
         onCancel={() => setIsLogoutModalOpen(false)}
         onConfirm={async () => {
           setIsLogoutModalOpen(false);
           await logout();
         }}
+        title=" Are you sure you want to logout?"
+        message=" You will be signed out of your account and need to log in again to
+          continue."
+          buttonText="Logout"
       />
   </>
   );

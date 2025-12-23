@@ -66,6 +66,15 @@ export const updateEvent = async (eventId: number, data: Partial<EventCreateRequ
   return response.data;
 } 
 
+export const deleteEvent = async (eventId: number) => {
+  const response = await axios.delete(`${urlLink}/organizer/event/cancel/registration/${eventId}`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+  return response.data;
+}
+
 export const getAllEvents = async (page: number, size: number) => {
 
   const response = await axios.get(`${urlLink}/event/all`, {  
@@ -135,15 +144,17 @@ export const getEventDetails = async (eventId: number) => {
   return response.data;
 }
 
-export const UpdateEventStatus = async (eventId: number, status: String) => {
-  const response = await axios.patch(`${urlLink}/organizer/event/statusChange/${eventId}`,{}, {
-    params: { status },
+export const UpdateEventStatus = async (eventId: number, status: string, reason?: string) => {
+  const response = await axios.patch(`${urlLink}/organizer/event/statusChange/${eventId}`, {
+    status,
+    reason
+  }, {
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
   });
   return response.data;
-}
+};
 
 
 export const sendBulkEmail = async (eventId: Number, payload: BulkEmailPayload) => {

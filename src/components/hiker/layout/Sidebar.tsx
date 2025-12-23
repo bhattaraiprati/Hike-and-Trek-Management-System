@@ -12,7 +12,8 @@ import {
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
-import ConfirmLogoutModal from '../../common/ConfirmLogoutModal';
+import ConfirmLogoutModal from '../../common/ConfirmModal';
+import ConfirmModal from '../../common/ConfirmModal';
 
 interface SidebarProps {
   isMobileOpen: boolean;
@@ -243,13 +244,19 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
       </div>
 
-      <ConfirmLogoutModal
+      <ConfirmModal
         isOpen={isLogoutModalOpen}
         onCancel={() => setIsLogoutModalOpen(false)}
         onConfirm={async () => {
           setIsLogoutModalOpen(false);
           await logout();
-        }}
+        }
+      }
+        title=" Are you sure you want to logout?"
+        message=" You will be signed out of your account and need to log in again to
+          continue."
+          buttonText="Logout"
+      
       />
     </aside>
   );
