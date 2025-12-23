@@ -11,6 +11,8 @@ import {
   Menu
 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
+import ConfirmLogoutModal from '../../common/ConfirmModal';
+import ConfirmModal from '../../common/ConfirmModal';
 
 interface HeaderProps {
   onMenuToggle?: () => void;
@@ -24,6 +26,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [notifications] = useState([
     {
       id: 1,
@@ -51,9 +54,14 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
     }
   ]);
 
-  const handleLogot = () => { 
-    logout();
-  }
+  const handleLogoutClick = () => {
+    setIsLogoutModalOpen(true);
+  };
+
+  const handleConfirmLogout = async () => {
+    setIsLogoutModalOpen(false);
+    await logout();
+  };
 
 
   const searchRef = useRef<HTMLDivElement>(null);
@@ -233,7 +241,10 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
                   </div>
 
                   <div className="p-2 border-t border-gray-200">
-                    <button onClick={handleLogot} className="w-full flex items-center space-x-3 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200">
+                    <button
+                      onClick={handleLogoutClick}
+                      className="w-full flex items-center space-x-3 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                    >
                       <LogOut className="w-4 h-4" />
                       <span>Logout</span>
                     </button>
@@ -244,6 +255,17 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+
+        isOpen={isLogoutModalOpen}
+        onCancel={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleConfirmLogout}
+        title=" Are you sure you want to logout?"
+        message=" You will be signed out of your account and need to log in again to
+          continue."
+          buttonText="Logout"
+      />
     </nav>
   );
 };

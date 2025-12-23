@@ -4,6 +4,8 @@ import { getAllEvents } from '../../api/services/Event';
 import { Search, Filter, MapPin, Calendar, Users, Clock, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Pagination } from '../../components/common/Pagination';
+import { DIFFICULTY_LABEL } from '../../types/eventTypes';
+import type {  Difficulty } from '../../types/eventTypes';
 
 
 // interface PaginationMetadata {
@@ -26,7 +28,7 @@ interface Event {
   location: string;
   date: string;
   durationDays: number;
-  difficultyLevel: 'EASY' | 'MODERATE' | 'DIFFICULT' | 'EXTREME';
+  difficultyLevel: Difficulty;
   price: number;
   maxParticipants: number;
   participantCount: number;
@@ -125,24 +127,11 @@ const ExploreEventsPage = () => {
     return date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
   }
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'EASY': return 'bg-green-100 text-green-800';
-      case 'MODERATE': return 'bg-yellow-100 text-yellow-800';
-      case 'DIFFICULT': return 'bg-orange-100 text-orange-800';
-      case 'EXTREME': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getDifficultyText = (difficulty: string) => {
-    switch (difficulty) {
-      case 'EASY': return 'Easy';
-      case 'MODERATE': return 'Moderate';
-      case 'DIFFICULT': return 'Difficult';
-      case 'EXTREME': return 'Extreme';
-      default: return difficulty;
-    }
+  const DIFFICULTY_COLOR: Record<Difficulty, string> = {
+    EASY: 'bg-green-100 text-green-800',
+    MODERATE: 'bg-yellow-100 text-yellow-800',
+    DIFFICULT: 'bg-orange-100 text-orange-800',
+    EXTREME: 'bg-red-100 text-red-800',
   };
 
   const toggleFavorite = (eventId: number) => {
@@ -272,10 +261,10 @@ const ExploreEventsPage = () => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E3A5F] focus:border-transparent"
                     >
                       <option value="all">All Levels</option>
-                      <option value="EASY">Easy</option>
-                      <option value="MODERATE">Moderate</option>
-                      <option value="DIFFICULT">Difficult</option>
-                      <option value="EXTREME">Extreme</option>
+                      <option value="EASY">{DIFFICULTY_LABEL.EASY}</option>
+                      <option value="MODERATE">{DIFFICULTY_LABEL.MODERATE}</option>
+                      <option value="DIFFICULT">{DIFFICULTY_LABEL.DIFFICULT}</option>
+                      <option value="EXTREME">{DIFFICULTY_LABEL.EXTREME}</option>
                     </select>
                   </div>
 
@@ -325,7 +314,7 @@ const ExploreEventsPage = () => {
               {/* Quick Filter Chips */}
               {selectedDifficulty !== 'all' && (
                 <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                  {getDifficultyText(selectedDifficulty)}
+                  {DIFFICULTY_LABEL[selectedDifficulty as Difficulty]}
                 </span>
               )}
               {priceRange[1] < 500 && (
@@ -404,8 +393,8 @@ const ExploreEventsPage = () => {
 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(event.difficultyLevel)}`}>
-                        {getDifficultyText(event.difficultyLevel)}
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${DIFFICULTY_COLOR[event.difficultyLevel]}`}>
+                        {DIFFICULTY_LABEL[event.difficultyLevel]}
                       </span>
                       {/* <div className="flex items-center gap-1">
                         <Star className="w-4 h-4 text-yellow-400 fill-current" />
@@ -441,12 +430,12 @@ const ExploreEventsPage = () => {
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
                           {event.isFeatured && (
-                            <span className="bg-[#1E3A5F] text-white px-2 py-1 text-xs font-medium rounded-full">
+                          <span className="bg-[#1E3A5F] text-white px-2 py-1 text-xs font-medium rounded-full">
                               Featured
                             </span>
                           )}
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(event.difficultyLevel)}`}>
-                            {getDifficultyText(event.difficultyLevel)}
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${DIFFICULTY_COLOR[event.difficultyLevel]}`}>
+                            {DIFFICULTY_LABEL[event.difficultyLevel]}
                           </span>
                         </div>
                         <h3 className="font-bold text-xl text-gray-900 mb-2">{event.title}</h3>

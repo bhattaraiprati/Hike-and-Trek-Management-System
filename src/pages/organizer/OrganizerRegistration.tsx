@@ -80,7 +80,7 @@ const OrganizerRegistration: React.FC = () => {
     setDocumentFile(null);
     setFormData(prev => ({
       ...prev,
-      document_url: ''
+      documentUrl : ''
     }));
     // Clear the file input
     const fileInput = document.getElementById('document-upload') as HTMLInputElement;
@@ -160,7 +160,7 @@ const OrganizerRegistration: React.FC = () => {
       if (type === "document") {
         setFormData((prev) => ({
           ...prev,
-          document_url: result.url,
+          documentUrl : result.url,
         }));
       }
 

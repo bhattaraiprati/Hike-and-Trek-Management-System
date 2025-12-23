@@ -11,6 +11,8 @@ import { getProfileUrl, uploadImage } from '../../api/services/authApi';
 import { useQuery } from '@tanstack/react-query';
 import { fetchAllEventsByUserId, getUpcommingEvents } from '../../api/services/Event';
 import { useNavigate } from 'react-router-dom';
+import ConfirmLogoutModal from '../../components/common/ConfirmModal';
+import ConfirmModal from '../../components/common/ConfirmModal';
 
 
 interface UpcomingEvent {
@@ -95,9 +97,10 @@ interface Activity {
 
 const HikerProfilePage = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
     const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'favorites' | 'payment'>('overview');
     const [preview, setPreview] = useState<string | null>(null);
+    const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
     const navigate = useNavigate();
 
   const [favoriteEvents, setFavoriteEvents] = useState<FavoriteEvent[]>([
@@ -294,6 +297,7 @@ const HikerProfilePage = () => {
   };
 
   return (
+    <>
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -400,7 +404,11 @@ const HikerProfilePage = () => {
 
               {/* Logout Button */}
               <div className="p-4 border-t border-gray-200">
-                <button className="w-full flex items-center justify-center gap-2 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200">
+                <button
+                  type="button"
+                  onClick={() => setIsLogoutModalOpen(true)}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                >
                   <LogOut className="w-5 h-5" />
                   <span>Logout</span>
                 </button>
@@ -740,6 +748,20 @@ const HikerProfilePage = () => {
         </div>
       </div>
     </div>
+
+      <ConfirmModal
+        isOpen={isLogoutModalOpen}
+        onCancel={() => setIsLogoutModalOpen(false)}
+        onConfirm={async () => {
+          setIsLogoutModalOpen(false);
+          await logout();
+        }}
+        title=" Are you sure you want to logout?"
+        message=" You will be signed out of your account and need to log in again to
+          continue."
+          buttonText="Logout"
+      />
+  </>
   );
 };
 

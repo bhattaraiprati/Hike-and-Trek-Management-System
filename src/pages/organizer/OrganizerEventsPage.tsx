@@ -138,7 +138,7 @@ const OrganizerEventsPage = () => {
               <h1 className="text-3xl font-bold text-[#1E3A5F]">My Events</h1>
               <p className="text-gray-600 mt-2">Manage and track your hiking events</p>
             </div>
-            <button className="bg-[#1E3A5F] text-white px-6 py-3 rounded-lg hover:bg-[#2a4a7a] transition-colors duration-200 font-medium">
+            <button onClick={() => navigate('/dashboard/register')} className="bg-[#1E3A5F] text-white px-6 py-3 rounded-lg hover:bg-[#2a4a7a] transition-colors duration-200 font-medium">
               Create New Event
             </button>
           </div>

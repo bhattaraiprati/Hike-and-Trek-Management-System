@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Loader2, Star, Users, ShieldCheck, Calendar } from 'lucide-react';
 import { getEventById } from '../../api/services/Event';
+import  { DIFFICULTY_LABEL} from '../../types/eventTypes';
+import type { Difficulty } from '../../types/eventTypes';
 
 interface OrganizerData {
   id: number;
@@ -23,7 +25,7 @@ interface EventData {
   location: string;
   date: string;
   durationDays: number;
-  difficultyLevel: 'Easy' | 'Moderate' | 'Difficult' | 'Expert';
+  difficultyLevel: Difficulty;
   price: number;
   maxParticipants: number;
   currentParticipants?: number;
@@ -82,6 +84,13 @@ const EventDetailsPage: React.FC = () => {
 
   // Use actual organizer data or mock data
   const organizer = event?.organizer;
+
+  const DIFFICULTY_COLOR: Record<Difficulty, string> = {
+    EASY: 'bg-green-100 text-green-800',
+    MODERATE: 'bg-yellow-100 text-yellow-800',
+    DIFFICULT: 'bg-orange-100 text-orange-800',
+    EXTREME: 'bg-red-100 text-red-800',
+  };
 
   const handleRegistration = () => {
     // TODO: Connect to real registration API
@@ -158,13 +167,8 @@ const EventDetailsPage: React.FC = () => {
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-gray-500">Difficulty:</span>
-                <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                  event.difficultyLevel === 'Easy' ? 'bg-green-100 text-green-800' :
-                  event.difficultyLevel === 'Moderate' ? 'bg-yellow-100 text-yellow-800' :
-                  event.difficultyLevel === 'Difficult' ? 'bg-orange-100 text-orange-800' :
-                  'bg-red-100 text-red-800'
-                }`}>
-                  {event.difficultyLevel}
+                <span className={`px-3 py-1 rounded-full text-xs font-bold ${DIFFICULTY_COLOR[event.difficultyLevel]}`}>
+                  {DIFFICULTY_LABEL[event.difficultyLevel]}
                 </span>
               </div>
             </div>

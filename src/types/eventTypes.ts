@@ -1,13 +1,14 @@
-export type EventStatus = 
-  | 'PENDING' 
-  | 'APPROVED' 
-  | 'REJECTED' 
-  | 'ACTIVE' 
-  | 'INACTIVE' 
-  | 'CANCELLED' 
-  | 'COMPLETED';
 
-export type DifficultyLevel = 'EASY' | 'MODERATE' | 'DIFFICULT' | 'EXTREME' | 'EXPERT';
+
+export type DifficultyLevel = 'EASY' | 'MODERATE' | 'DIFFICULT' | 'EXTREME';
+export type Difficulty = DifficultyLevel;
+
+export const DIFFICULTY_LABEL: Record<Difficulty, string> = {
+  EASY: 'Easy',
+  MODERATE: 'Moderate',
+  DIFFICULT: 'Difficult',
+  EXTREME: 'Expert',
+};
 
 export interface Event {
   id: number;
@@ -55,6 +56,13 @@ export interface EventDetails extends Event {
     rating: number;
   };
 }
+
+export type EventStatus = 
+  | 'DRAFT'
+  | 'ACTIVE' 
+  | 'INACTIVE' 
+  | 'COMPLETED'
+  | 'CANCELLED';
 
 export interface EventRegistration {
   id: number;

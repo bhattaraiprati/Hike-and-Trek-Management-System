@@ -14,6 +14,7 @@ import ExploreEventsPage from "../pages/hiker/ExploreEventsPage";
 import EventDetailsPage from "../pages/hiker/EventDetailsPage";
 import BookingCheckoutPage from "../pages/hiker/BookingCheckoutPage";
 import BookingConfirmationPage from "../pages/hiker/BookingConfirmationPage";
+import PaymentFailurePage from "../pages/hiker/PaymentFailurePage";
 import MyBookingsPage from "../pages/hiker/MyBookingsPage";
 import HikerProfilePage from "../pages/hiker/HikerProfilePage";
 import OrganizerEventDetailsPage from "../pages/organizer/OrganizerEventDetailsPage ";
@@ -27,7 +28,6 @@ const AppRoutes = () => {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<OrganizerRegistration />} />
-      <Route path="/register" element={<LoginPage />} />
       <Route path="/oauth/callback" element={<OAuthCallback />} />
 
       {/* Protected Organizer Routes */}
@@ -56,6 +56,7 @@ const AppRoutes = () => {
           <Route path="event/:eventId" element={<EventDetailsPage />} />
           <Route path="event/:eventId/checkout" element={<BookingCheckoutPage />} />
           <Route path="messages" element={<ChatInterface/>} />
+          <Route path="booking-confirmation" element={<PaymentFailurePage />} />
           <Route path="booking-confirmation/:bookingId" element={<BookingConfirmationPage />} />
         </Route>
       </Route>
