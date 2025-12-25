@@ -1,6 +1,6 @@
 // components/organizer/popup/StatusChangeModal.tsx
 import { useState } from 'react';
-import { X, AlertTriangle, CheckCircle, XCircle, Flag, FileText, ShieldOff, ShieldCheck } from 'lucide-react';
+import { X, AlertTriangle, CheckCircle, XCircle, Flag, FileText, ShieldOff} from 'lucide-react';
 
 interface StatusChangeModalProps {
   isOpen: boolean;
