@@ -12,12 +12,15 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { getProfileUrl, uploadImage } from '../../api/services/authApi';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchAllEventsByUserId, getUpcommingEvents } from '../../api/services/Event';
 import { useNavigate } from 'react-router-dom';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import ReviewModal from '../../components/hiker/popup/ReviewModal';
 import type { PendingReview, Review, ReviewStats } from '../../types/HikerTypes';
+import axios from 'axios';
+import { urlLink } from '../../api/axiosConfig';
+import { fetchMyReviews, fetchPendingReviews, submitReview, updateReview } from '../../api/services/ReviewApi';
 
 
 interface UpcomingEvent {
@@ -108,6 +111,7 @@ const HikerProfilePage = () => {
     const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
     const navigate = useNavigate();
 
+    const queryClient = useQueryClient();
 
     const [pendingReviews, setPendingReviews] = useState<PendingReview[]>([]);
     const [reviews, setReviews] = useState<Review[]>([]);
@@ -228,6 +232,35 @@ const HikerProfilePage = () => {
     
   })
 
+  const { data: myReviews = [] } = useQuery<Review[]>({
+  queryKey: ['myReviews'],
+  queryFn: fetchMyReviews,
+  enabled: activeTab === 'review'
+});
+
+const { data: pendingReviewsData = [] } = useQuery<PendingReview[]>({
+  queryKey: ['pendingReviews'],
+  queryFn: fetchPendingReviews,
+  enabled: activeTab === 'review'
+});
+
+const submitMutation = useMutation({
+  mutationFn: (data: { rating: number; comment: string; images?: string[] }) => {
+    if (selectedReview) {
+      return updateReview(selectedReview.id, data);
+    } else if (selectedPendingReview) {
+      return submitReview({ ...data, eventId: selectedPendingReview.eventId });
+    }
+    throw new Error('No review selected');
+  },
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['myReviews'] });
+    queryClient.invalidateQueries({ queryKey: ['pendingReviews'] });
+    setShowReviewModal(false);
+  }
+});
+
+
   const handleEventView = (eventId: number) => {
     navigate(`/hiker-dashboard/booking-confirmation/${eventId}`);
   };
@@ -310,31 +343,6 @@ const handleEditReview = (review: Review) => {
   setShowReviewModal(true);
 };
 
-const handleSubmitReview = async (reviewData: {
-  rating: number;
-  comment: string;
-  images?: string[];
-}) => {
-  setIsSubmittingReview(true);
-  try {
-    // API call to submit review
-    if (selectedReview) {
-      // Update existing review
-      console.log('Updating review:', selectedReview.id, reviewData);
-    } else if (selectedPendingReview) {
-      // Submit new review
-      console.log('Submitting review for event:', selectedPendingReview.eventId, reviewData);
-    }
-    
-    // Close modal and refresh data
-    setShowReviewModal(false);
-    // Refresh review data here
-  } catch (error) {
-    console.error('Error submitting review:', error);
-  } finally {
-    setIsSubmittingReview(false);
-  }
-};
 
 
   const handleFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) =>{
@@ -359,84 +367,29 @@ const handleSubmitReview = async (reviewData: {
 
   // Add this useEffect to load reviews data
 useEffect(() => {
-  // Fetch pending reviews and completed reviews
-  const fetchReviewData = async () => {
-    try {
-      // Mock data - replace with actual API calls
-      const pendingData: PendingReview[] = [
-        {
-          id: 1,
-          eventId: 101,
-          eventTitle: 'Everest Base Camp Trek',
-          eventImage: 'https://images.unsplash.com/photo-1551632811-561732d1e306',
-          organizerName: 'Himalayan Adventures',
-          completedDate: '2024-04-10',
-          daysUntilExpiry: 5
-        },
-        {
-          id: 2,
-          eventId: 102,
-          eventTitle: 'Annapurna Circuit',
-          eventImage: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4',
-          organizerName: 'Mountain Guides',
-          completedDate: '2024-04-05',
-          daysUntilExpiry: 10
-        }
-      ];
-
-      const completedReviews: Review[] = [
-        {
-          id: 1,
-          eventId: 100,
-          eventTitle: 'Langtang Valley Trek',
-          eventImage: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b',
-          organizerName: 'Trek Nepal',
-          rating: 5,
-          comment: 'Amazing experience! The guides were knowledgeable and the scenery was breathtaking.',
-          createdAt: '2024-03-15',
-          helpfulCount: 12,
-          images: [
-            'https://images.unsplash.com/photo-1551632811-561732d1e306',
-            'https://images.unsplash.com/photo-1506905925346-21bda4d32df4'
-          ],
-          isHelpful: true
-        },
-        {
-          id: 2,
-          eventId: 99,
-          eventTitle: 'Ghorepani Poon Hill',
-          eventImage: 'https://images.unsplash.com/photo-1551632811-561732d1e306',
-          organizerName: 'Sunrise Treks',
-          rating: 4,
-          comment: 'Great for beginners. The sunrise view was worth the early morning hike.',
-          createdAt: '2024-02-28',
-          helpfulCount: 8,
-          isHelpful: false
-        }
-      ];
-
-      setPendingReviews(pendingData);
-      setReviews(completedReviews);
-      
-      // Calculate stats
-      const avgRating = completedReviews.reduce((sum, r) => sum + r.rating, 0) / completedReviews.length;
-      const helpfulCount = completedReviews.filter(r => r.isHelpful).length;
-      
-      setReviewStats({
-        totalReviews: completedReviews.length,
-        averageRating: avgRating || 0,
-        helpfulReviews: helpfulCount,
-        pendingReviews: pendingData.length
-      });
-    } catch (error) {
-      console.error('Error fetching review data:', error);
-    }
-  };
-
   if (activeTab === 'review') {
-    fetchReviewData();
+    // Calculate stats
+    const avgRating = myReviews.reduce((sum, r) => sum + r.rating, 0) / myReviews.length || 0;
+    const helpfulCount = myReviews.filter(r => r.isHelpful).length;
+    
+    setReviewStats({
+      totalReviews: myReviews.length,
+      averageRating: avgRating,
+      helpfulReviews: helpfulCount,
+      pendingReviews: pendingReviewsData.length
+    });
+    setPendingReviews(pendingReviewsData);
+    setReviews(myReviews);
   }
-}, [activeTab]);
+}, [activeTab, myReviews, pendingReviewsData]);
+
+const handleSubmitReview = async (reviewData: {
+  rating: number;
+  comment: string;
+  images?: string[];
+}) => {
+  submitMutation.mutate(reviewData);
+};
 
   return (
     <>

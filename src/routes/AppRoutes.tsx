@@ -21,6 +21,7 @@ import OrganizerEventDetailsPage from "../pages/organizer/OrganizerEventDetailsP
 import ChatInterface from "../components/chat/ChatInterface";
 import OrganizerProfilePage from "../pages/organizer/OrganizerProfilePage";
 import PaymentSuccessPage from "../pages/hiker/PaymentSuccessPage";
+import PaymentManagementPage from "../pages/organizer/PaymentManagementPage";
 
 const AppRoutes = () => {
   return (
@@ -41,6 +42,7 @@ const AppRoutes = () => {
           <Route path="register" element={<CreateEventPage />} />
           {/* <Route path="participants" element={<OrganizerEventDetailsPage />} /> */}
           <Route path="messages" element={<ChatInterface/>} />
+          <Route path="payments" element={<PaymentManagementPage />} />
           <Route path="profile" element={<OrganizerProfilePage />} />
           <Route path="settings" element={<div>Settings Page</div>} />
         </Route>
