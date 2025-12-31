@@ -20,6 +20,7 @@ import HikerProfilePage from "../pages/hiker/HikerProfilePage";
 import OrganizerEventDetailsPage from "../pages/organizer/OrganizerEventDetailsPage ";
 import ChatInterface from "../components/chat/ChatInterface";
 import OrganizerProfilePage from "../pages/organizer/OrganizerProfilePage";
+import PaymentSuccessPage from "../pages/hiker/PaymentSuccessPage";
 
 const AppRoutes = () => {
   return (
@@ -50,6 +51,8 @@ const AppRoutes = () => {
         <Route path="/hiker-dashboard" element={<HikerLayout />}>
           <Route index element={<DashboardPage />} />
 
+
+          <Route path="payment-success" element={<PaymentSuccessPage />} />
           <Route path="events" element={<MyBookingsPage />} />
           <Route path="explore" element={<ExploreEventsPage />} />
           <Route path="profile" element={<HikerProfilePage />} />

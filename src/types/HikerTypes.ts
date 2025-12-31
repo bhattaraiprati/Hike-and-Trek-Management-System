@@ -78,3 +78,35 @@ export interface QuickAction {
   color: string;
   count?: number;
 }
+
+// types/hikerTypes.ts
+export interface Review {
+  id: number;
+  eventId: number;
+  eventTitle: string;
+  eventImage: string;
+  organizerName: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+  helpfulCount: number;
+  images?: string[];
+  isHelpful?: boolean;
+}
+
+export interface PendingReview {
+  id: number;
+  eventId: number;
+  eventTitle: string;
+  eventImage: string;
+  organizerName: string;
+  completedDate: string;
+  daysUntilExpiry: number;
+}
+
+export interface ReviewStats {
+  totalReviews: number;
+  averageRating: number;
+  helpfulReviews: number;
+  pendingReviews: number;
+}

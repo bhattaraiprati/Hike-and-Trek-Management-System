@@ -4,6 +4,7 @@ import { ArrowLeft, CreditCard, Smartphone, User, Mail, Phone, Globe, ShieldChec
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { getEventById, registerEvent } from '../../api/services/Event';
 import { useAuth } from '../../context/AuthContext';
+import { createStripeCheckoutSession } from '../../api/services/Payment';
 
 interface Participant {
   id: number;
@@ -20,7 +21,7 @@ interface BillingInfo {
 }
 
 interface PaymentMethod {
-  type: 'esewa' | 'card' | 'khalti' ;
+  type: 'esewa' | 'stripe';
   cardNumber?: string;
   expiryDate?: string;
   cvv?: string;
@@ -75,7 +76,7 @@ interface EventRegisterDTO {
   email: string;
   participants: ParticipantDTO[];
   amount: number;
-  method: 'ESEWA' | 'KHALTI' | 'CARD';
+  method: 'ESEWA' |  'STRIPE';
 }
 
 const BookingCheckoutPage = () => {
@@ -160,7 +161,7 @@ const handleEsewaRedirect = (paymentRequest: any) => {
     contactEmail: '',
   });
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>({
-    type: 'esewa'
+    type: 'esewa' ,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -275,24 +276,24 @@ const handleEsewaRedirect = (paymentRequest: any) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const validateStep3 = (): boolean => {
-    const newErrors: Record<string, string> = {};
+  // const validateStep3 = (): boolean => {
+  //   const newErrors: Record<string, string> = {};
 
-    if (paymentMethod.type === 'card') {
-      if (!paymentMethod.cardNumber || paymentMethod.cardNumber.replace(/\D/g, '').length !== 16) {
-        newErrors.cardNumber = 'Enter a valid 16-digit card number';
-      }
-      if (!paymentMethod.expiryDate || !/^\d{2}\/\d{2}$/.test(paymentMethod.expiryDate)) {
-        newErrors.expiryDate = 'Enter expiry date in MM/YY format';
-      }
-      if (!paymentMethod.cvv || paymentMethod.cvv.length !== 3) {
-        newErrors.cvv = 'Enter a valid 3-digit CVV';
-      }
-    }
+  //   if (paymentMethod.type === 'stripe') {
+  //     if (!paymentMethod.cardNumber || paymentMethod.cardNumber.replace(/\D/g, '').length !== 16) {
+  //       newErrors.cardNumber = 'Enter a valid 16-digit card number';
+  //     }
+  //     if (!paymentMethod.expiryDate || !/^\d{2}\/\d{2}$/.test(paymentMethod.expiryDate)) {
+  //       newErrors.expiryDate = 'Enter expiry date in MM/YY format';
+  //     }
+  //     if (!paymentMethod.cvv || paymentMethod.cvv.length !== 3) {
+  //       newErrors.cvv = 'Enter a valid 3-digit CVV';
+  //     }
+  //   }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  //   setErrors(newErrors);
+  //   return Object.keys(newErrors).length === 0;
+  // };
 
   const handleNextStep = () => {
     if (currentStep === 1 && validateStep1()) {
@@ -309,7 +310,7 @@ const handleEsewaRedirect = (paymentRequest: any) => {
   };
 
   const handleSubmitPayment = async () => {
-  if (!validateStep3()) return;
+  // if (!validateStep3()) return;
 
   if (!user?.id) {
     alert('You must be logged in to book an event.');
@@ -337,12 +338,26 @@ const handleEsewaRedirect = (paymentRequest: any) => {
     email: billingInfo.contactEmail,
     participants: backendParticipants,
     amount: totalAmount,
-    method: paymentMethod.type === 'esewa' ? 'ESEWA' : 'CARD', // Adjust if more methods
+    method: paymentMethod.type === 'stripe' ? 'STRIPE' : 
+            paymentMethod.type === 'esewa' ? 'ESEWA' : 'ESEWA',
   };
 
   try {
-    registerMutation.mutate(payload);
-  } catch (err) {
+    if (paymentMethod.type === 'stripe') {
+      // Handle Stripe Payment
+      const stripeResponse = await createStripeCheckoutSession(payload);
+      console.log('Stripe session created:', stripeResponse);
+      
+      // Redirect to Stripe Checkout
+      window.location.href = stripeResponse.sessionUrl;
+      
+    } else if (paymentMethod.type === 'esewa') {
+      // Handle eSewa Payment (existing code)
+      registerMutation.mutate(payload);
+    }
+  } catch (error: any) {
+    console.error('Payment initiation failed:', error);
+    alert(error.response?.data?.error || 'Payment initiation failed. Please try again.');
     setIsSubmitting(false);
   }
 };
@@ -634,9 +649,9 @@ const handleEsewaRedirect = (paymentRequest: any) => {
                         <span className="font-medium">eSewa</span>
                       </button>
                       <button
-                        onClick={() => updatePaymentMethod('type', 'card')}
+                        onClick={() => updatePaymentMethod('type', 'stripe')}
                         className={`p-4 border rounded-lg flex flex-col items-center justify-center transition-all duration-200 ${
-                          paymentMethod.type === 'card'
+                          paymentMethod.type === 'stripe'
                             ? 'border-[#1E3A5F] bg-blue-50'
                             : 'border-gray-300 hover:border-gray-400'
                         }`}
@@ -644,25 +659,13 @@ const handleEsewaRedirect = (paymentRequest: any) => {
                         <CreditCard className="w-8 h-8 text-blue-600 mb-2" />
                         <span className="font-medium">Card</span>
                       </button>
-                      <button
-                        onClick={() => updatePaymentMethod('type', 'khalti')}
-                        className={`p-4 border rounded-lg flex flex-col items-center justify-center transition-all duration-200 ${
-                          paymentMethod.type === 'khalti'
-                            ? 'border-[#1E3A5F] bg-blue-50'
-                            : 'border-gray-300 hover:border-gray-400'
-                        }`}
-                      >
-                        <div className="w-8 h-8 bg-purple-600 rounded flex items-center justify-center text-white font-bold text-xs mb-2">
-                          KH
-                        </div>
-                        <span className="font-medium">Khalti</span>
-                      </button>
+                      
                      
                     </div>
                   </div>
 
                   {/* Card Details (if card selected) */}
-                  {paymentMethod.type === 'card' && (
+                  {/* {paymentMethod.type === 'stripe' && (
                     <div className="border border-gray-200 rounded-xl p-6 bg-gray-50">
                       <h3 className="font-medium text-gray-900 mb-4">Card Details</h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -721,7 +724,7 @@ const handleEsewaRedirect = (paymentRequest: any) => {
                         </div>
                       </div>
                     </div>
-                  )}
+                  )} */}
 
                   {/* Payment Instructions */}
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -730,13 +733,10 @@ const handleEsewaRedirect = (paymentRequest: any) => {
                       {paymentMethod.type === 'esewa' && (
                         <li>• Payment will be redirected to eSewa for secure processing</li>
                       )}
-                      {paymentMethod.type === 'card' && (
+                      {paymentMethod.type === 'stripe' && (
                         <li>• Enter your card details for secure payment processing</li>
                       )}
-                      {paymentMethod.type === 'khalti' && (
-                        <li>• You will be redirected to Khalti for payment</li>
-                      )}
-                      
+                    
                       <li>• Booking confirmation will be sent to your email</li>
                       <li>• 24-hour cancellation policy applies</li>
                     </ul>

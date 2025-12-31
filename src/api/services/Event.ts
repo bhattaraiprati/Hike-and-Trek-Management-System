@@ -35,7 +35,7 @@ export interface EventRegisterDTO {
   email: string;
   participants: ParticipantDTO[];
   amount: number;
-  method: 'ESEWA' | 'KHALTI' | 'CARD';
+  method: 'ESEWA' | 'STRIPE' ;
 }
 
 export const createEvent = async (data: EventCreateRequest) => {

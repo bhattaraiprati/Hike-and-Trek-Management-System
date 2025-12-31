@@ -90,3 +90,42 @@ export const updateOrganizerProfile = async (
     verificationStatus: mapVerificationStatus(data.verificationStatus),
   };
 };
+
+export const handleAddtoFavorites = async (
+  eventId: number
+) => {
+  const response  = await axios.post(
+    `${urlLink}/hiker/favourites`,
+    {eventId},{
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    }
+  );
+  return response.data;
+};
+
+export const handleGetAllFavorites = async () => {
+  const response  = await axios.get(
+    `${urlLink}/hiker/favourites`,{
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`, 
+      },
+    }
+  );
+  return response.data;
+}
+
+export const toggleFavorite = async (eventId: number) => {
+  const response = await axios.post(
+    `${urlLink}/hiker/favourites/toggle/${eventId}`,
+    {}, // empty body
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+    }
+  );
+  return response.data;
+};
+

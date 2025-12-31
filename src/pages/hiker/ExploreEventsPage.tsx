@@ -1,11 +1,12 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState} from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getAllEvents } from '../../api/services/Event';
 import { Search, Filter, MapPin, Calendar, Users, Clock, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Pagination } from '../../components/common/Pagination';
 import { DIFFICULTY_LABEL } from '../../types/eventTypes';
 import type {  Difficulty } from '../../types/eventTypes';
+import {  toggleFavorite, handleGetAllFavorites } from '../../api/services/Profile';
 
 
 // interface PaginationMetadata {
@@ -60,7 +61,6 @@ const ExploreEventsPage = () => {
   const [dateRange, setDateRange] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('latest');
   const [view, setView] = useState<'grid' | 'list'>('grid');
-  const [favorites, setFavorites] = useState<number[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
 
@@ -69,7 +69,17 @@ const ExploreEventsPage = () => {
     queryFn: () => getAllEvents(currentPage, 10),
   });
 
+ const { data: favoriteEventIds = [] } = useQuery({
+  queryKey: ['favorites'],
+  queryFn: async () => {
+    const response = await handleGetAllFavorites();
+    // Extract only the eventIds
+    const favItems = response.favourites || [];
+    return favItems.map((fav: any) => fav.eventId).filter(Boolean) as number[];
+  },
+});
 
+const queryClient = useQueryClient();
 
   const eventsData = events.data || [];
   const pagination = events?.pagination;
@@ -134,12 +144,33 @@ const ExploreEventsPage = () => {
     EXTREME: 'bg-red-100 text-red-800',
   };
 
-  const toggleFavorite = (eventId: number) => {
-    setFavorites(prev =>
-      prev.includes(eventId)
-        ? prev.filter(id => id !== eventId)
-        : [...prev, eventId]
-    );
+ const toggleFavoriteMutation = useMutation({
+  mutationFn: toggleFavorite,
+  onMutate: async (eventId: number) => {
+    await queryClient.cancelQueries({ queryKey: ['favorites'] });
+
+    const previousIds = queryClient.getQueryData<number[]>(['favorites']) || [];
+
+    queryClient.setQueryData<number[]>(['favorites'], (old = []) => {
+      if (old.includes(eventId)) {
+        return old.filter(id => id !== eventId);
+      }
+      return [...old, eventId];
+    });
+
+    return { previousIds };
+  },
+  onError: (err, eventId, context) => {
+    queryClient.setQueryData(['favorites'], context?.previousIds);
+    console.error('Failed to toggle favorite:', err);
+  },
+  onSettled: () => {
+    queryClient.invalidateQueries({ queryKey: ['favorites'] });
+  },
+});
+
+  const handleToggleFavorite = (eventId: number) => {
+    toggleFavoriteMutation.mutate(eventId);
   };
 
   const handleEventView = (id: number) => { 
@@ -346,15 +377,21 @@ const ExploreEventsPage = () => {
                   </div>
                   <div className="absolute top-3 right-3 flex gap-2">
                     <button
-                      onClick={() => toggleFavorite(event.id)}
-                      className={`p-2 rounded-full backdrop-blur-sm transition-colors duration-200 ${
-                        favorites.includes(event.id)
-                          ? 'bg-red-500 text-white'
-                          : 'bg-white/90 text-gray-600 hover:bg-white'
-                      }`}
-                    >
-                      <Heart className={`w-4 h-4 ${favorites.includes(event.id) ? 'fill-current' : ''}`} />
-                    </button>
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleFavorite(event.id);
+                        }}
+                        disabled={toggleFavoriteMutation.isPending}
+                        className={`p-2 rounded-full backdrop-blur-sm transition-colors duration-200 ${
+                          favoriteEventIds.includes(event.id)
+                            ? 'bg-red-500 text-white'
+                            : 'bg-white/90 text-gray-600 hover:bg-white'
+                        }`}
+                      >
+                        <Heart 
+                          className={`w-4 h-4 ${favoriteEventIds.includes(event.id) ? 'fill-current' : ''}`} 
+                        />
+                      </button>
                     
                   </div>
                 </div>
@@ -443,15 +480,21 @@ const ExploreEventsPage = () => {
                       </div>
                       <div className="flex gap-2 ml-4">
                         <button
-                          onClick={() => toggleFavorite(event.id)}
-                          className={`p-2 rounded-full transition-colors duration-200 ${
-                            favorites.includes(event.id)
-                              ? 'bg-red-500 text-white'
-                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                          }`}
-                        >
-                          <Heart className={`w-4 h-4 ${favorites.includes(event.id) ? 'fill-current' : ''}`} />
-                        </button>
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleFavorite(event.id);
+                            }}
+                            disabled={toggleFavoriteMutation.isPending}
+                            className={`p-2 rounded-full transition-colors duration-200 ${
+                              favoriteEventIds.includes(event.id)
+                                ? 'bg-red-500 text-white'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            }`}
+                          >
+                            <Heart 
+                              className={`w-4 h-4 ${favoriteEventIds.includes(event.id) ? 'fill-current' : ''}`} 
+                            />
+                          </button>
                        
                       </div>
                     </div>

@@ -1,18 +1,23 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { 
   User, Calendar, Heart, MapPin, 
   Star, Camera, Users, Clock, 
    TrendingUp, 
   ChevronRight, LogOut,
   WalletCards,
+  UserStar,
+  CheckCircle,
+  AlertCircle,
+  MessageSquare,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { getProfileUrl, uploadImage } from '../../api/services/authApi';
 import { useQuery } from '@tanstack/react-query';
 import { fetchAllEventsByUserId, getUpcommingEvents } from '../../api/services/Event';
 import { useNavigate } from 'react-router-dom';
-import ConfirmLogoutModal from '../../components/common/ConfirmModal';
 import ConfirmModal from '../../components/common/ConfirmModal';
+import ReviewModal from '../../components/hiker/popup/ReviewModal';
+import type { PendingReview, Review, ReviewStats } from '../../types/HikerTypes';
 
 
 interface UpcomingEvent {
@@ -98,10 +103,26 @@ interface Activity {
 const HikerProfilePage = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { user, logout } = useAuth();
-    const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'favorites' | 'payment'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'favorites'| 'review' | 'payment'>('overview');
     const [preview, setPreview] = useState<string | null>(null);
     const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
     const navigate = useNavigate();
+
+
+    const [pendingReviews, setPendingReviews] = useState<PendingReview[]>([]);
+    const [reviews, setReviews] = useState<Review[]>([]);
+    const [reviewStats, setReviewStats] = useState<ReviewStats>({
+      totalReviews: 0,
+      averageRating: 0,
+      helpfulReviews: 0,
+      pendingReviews: 0
+    });
+    const [showReviewModal, setShowReviewModal] = useState(false);
+    const [selectedReview, setSelectedReview] = useState<Review | null>(null);
+    const [selectedPendingReview, setSelectedPendingReview] = useState<PendingReview | null>(null);
+    const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+    const [showAllPending, setShowAllPending] = useState(false);
+    const [showAllReviews, setShowAllReviews] = useState(false);
 
   const [favoriteEvents, setFavoriteEvents] = useState<FavoriteEvent[]>([
     {
@@ -276,6 +297,46 @@ const HikerProfilePage = () => {
     fileInputRef.current?.click();
   };
 
+  // Add these event handlers
+const handleWriteReview = (pendingReview: PendingReview) => {
+  setSelectedPendingReview(pendingReview);
+  setSelectedReview(null);
+  setShowReviewModal(true);
+};
+
+const handleEditReview = (review: Review) => {
+  setSelectedReview(review);
+  setSelectedPendingReview(null);
+  setShowReviewModal(true);
+};
+
+const handleSubmitReview = async (reviewData: {
+  rating: number;
+  comment: string;
+  images?: string[];
+}) => {
+  setIsSubmittingReview(true);
+  try {
+    // API call to submit review
+    if (selectedReview) {
+      // Update existing review
+      console.log('Updating review:', selectedReview.id, reviewData);
+    } else if (selectedPendingReview) {
+      // Submit new review
+      console.log('Submitting review for event:', selectedPendingReview.eventId, reviewData);
+    }
+    
+    // Close modal and refresh data
+    setShowReviewModal(false);
+    // Refresh review data here
+  } catch (error) {
+    console.error('Error submitting review:', error);
+  } finally {
+    setIsSubmittingReview(false);
+  }
+};
+
+
   const handleFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) =>{
 
     const file = event.target.files?.[0];
@@ -295,6 +356,87 @@ const HikerProfilePage = () => {
     }
 
   };
+
+  // Add this useEffect to load reviews data
+useEffect(() => {
+  // Fetch pending reviews and completed reviews
+  const fetchReviewData = async () => {
+    try {
+      // Mock data - replace with actual API calls
+      const pendingData: PendingReview[] = [
+        {
+          id: 1,
+          eventId: 101,
+          eventTitle: 'Everest Base Camp Trek',
+          eventImage: 'https://images.unsplash.com/photo-1551632811-561732d1e306',
+          organizerName: 'Himalayan Adventures',
+          completedDate: '2024-04-10',
+          daysUntilExpiry: 5
+        },
+        {
+          id: 2,
+          eventId: 102,
+          eventTitle: 'Annapurna Circuit',
+          eventImage: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4',
+          organizerName: 'Mountain Guides',
+          completedDate: '2024-04-05',
+          daysUntilExpiry: 10
+        }
+      ];
+
+      const completedReviews: Review[] = [
+        {
+          id: 1,
+          eventId: 100,
+          eventTitle: 'Langtang Valley Trek',
+          eventImage: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b',
+          organizerName: 'Trek Nepal',
+          rating: 5,
+          comment: 'Amazing experience! The guides were knowledgeable and the scenery was breathtaking.',
+          createdAt: '2024-03-15',
+          helpfulCount: 12,
+          images: [
+            'https://images.unsplash.com/photo-1551632811-561732d1e306',
+            'https://images.unsplash.com/photo-1506905925346-21bda4d32df4'
+          ],
+          isHelpful: true
+        },
+        {
+          id: 2,
+          eventId: 99,
+          eventTitle: 'Ghorepani Poon Hill',
+          eventImage: 'https://images.unsplash.com/photo-1551632811-561732d1e306',
+          organizerName: 'Sunrise Treks',
+          rating: 4,
+          comment: 'Great for beginners. The sunrise view was worth the early morning hike.',
+          createdAt: '2024-02-28',
+          helpfulCount: 8,
+          isHelpful: false
+        }
+      ];
+
+      setPendingReviews(pendingData);
+      setReviews(completedReviews);
+      
+      // Calculate stats
+      const avgRating = completedReviews.reduce((sum, r) => sum + r.rating, 0) / completedReviews.length;
+      const helpfulCount = completedReviews.filter(r => r.isHelpful).length;
+      
+      setReviewStats({
+        totalReviews: completedReviews.length,
+        averageRating: avgRating || 0,
+        helpfulReviews: helpfulCount,
+        pendingReviews: pendingData.length
+      });
+    } catch (error) {
+      console.error('Error fetching review data:', error);
+    }
+  };
+
+  if (activeTab === 'review') {
+    fetchReviewData();
+  }
+}, [activeTab]);
 
   return (
     <>
@@ -376,6 +518,23 @@ const HikerProfilePage = () => {
                     >
                       <Heart className="w-5 h-5" />
                       <span>Wishlist</span>
+                      <span className="ml-auto bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">
+                        {favoriteEvents.length}
+                      </span>
+                    </button>
+                  </li>
+
+                  <li>
+                    <button
+                      onClick={() => setActiveTab('review')}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200 ${
+                        activeTab === 'review'
+                          ? 'bg-[#1E3A5F] text-white'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                    >
+                      <UserStar className="w-5 h-5" />
+                      <span>Reviews</span>
                       <span className="ml-auto bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">
                         {favoriteEvents.length}
                       </span>
@@ -617,6 +776,205 @@ const HikerProfilePage = () => {
               </div>
             )}
 
+             {/* Wishlist Tab */}
+            {activeTab === 'review' && (
+                  <div className="space-y-8">
+                    {/* Review Stats */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-blue-50 rounded-lg">
+                            <Star className="w-5 h-5 text-blue-600" />
+                          </div>
+                          <div>
+                            <div className="text-2xl font-bold text-gray-900">{reviewStats.totalReviews}</div>
+                            <div className="text-sm text-gray-600">Total Reviews</div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-green-50 rounded-lg">
+                            <TrendingUp className="w-5 h-5 text-green-600" />
+                          </div>
+                          <div>
+                            <div className="text-2xl font-bold text-gray-900">{reviewStats.averageRating.toFixed(1)}</div>
+                            <div className="text-sm text-gray-600">Average Rating</div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-orange-50 rounded-lg">
+                            <Clock className="w-5 h-5 text-orange-600" />
+                          </div>
+                          <div>
+                            <div className="text-2xl font-bold text-gray-900">{reviewStats.pendingReviews}</div>
+                            <div className="text-sm text-gray-600">Pending Reviews</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Pending Reviews Section */}
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                      <div className="flex justify-between items-center mb-6">
+                        <div>
+                          <h3 className="text-lg font-semibold text-[#1E3A5F]">Pending Reviews</h3>
+                          <p className="text-sm text-gray-600 mt-1">
+                            Share your experience from recent treks ({pendingReviews.length} remaining)
+                          </p>
+                        </div>
+                        {pendingReviews.length > 0 && (
+                          <button
+                            onClick={() => setShowAllPending(!showAllPending)}
+                            className="text-sm text-[#1E3A5F] hover:text-[#2a4a7a]"
+                          >
+                            {showAllPending ? 'Show Less' : 'View All'}
+                          </button>
+                        )}
+                      </div>
+                      
+                      {pendingReviews.length === 0 ? (
+                        <div className="text-center py-8">
+                          <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <CheckCircle className="w-8 h-8 text-green-500" />
+                          </div>
+                          <h4 className="text-lg font-medium text-gray-900 mb-2">All Caught Up!</h4>
+                          <p className="text-gray-600">You've reviewed all your completed treks.</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {(showAllPending ? pendingReviews : pendingReviews.slice(0, 3)).map((pendingReview) => (
+                            <div
+                              key={pendingReview.id}
+                              className="border border-gray-200 rounded-xl p-4 hover:border-[#1E3A5F] transition-colors"
+                            >
+                              <div className="flex items-center gap-4">
+                                <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                                  <img
+                                    src={pendingReview.eventImage}
+                                    alt={pendingReview.eventTitle}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                                
+                                <div className="flex-1">
+                                  <h4 className="font-medium text-gray-900">{pendingReview.eventTitle}</h4>
+                                  <div className="flex items-center gap-3 text-sm text-gray-600 mt-1">
+                                    <span>Organizer: {pendingReview.organizerName}</span>
+                                    <span>•</span>
+                                    <span>Completed: {new Date(pendingReview.completedDate).toLocaleDateString()}</span>
+                                  </div>
+                                  {pendingReview.daysUntilExpiry <= 7 && (
+                                    <div className="flex items-center gap-1 text-sm text-orange-600 mt-2">
+                                      <AlertCircle className="w-4 h-4" />
+                                      <span>Expires in {pendingReview.daysUntilExpiry} days</span>
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                <button
+                                  onClick={() => handleWriteReview(pendingReview)}
+                                  className="px-4 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4a7a] transition-colors whitespace-nowrap"
+                                >
+                                  Write Review
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* My Reviews Section */}
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                      <div className="flex justify-between items-center mb-6">
+                        <div>
+                          <h3 className="text-lg font-semibold text-[#1E3A5F]">My Reviews ({reviews.length})</h3>
+                          <p className="text-sm text-gray-600 mt-1">
+                            Your feedback helps other hikers
+                          </p>
+                        </div>
+                        {reviews.length > 0 && (
+                          <button
+                            onClick={() => setShowAllReviews(!showAllReviews)}
+                            className="text-sm text-[#1E3A5F] hover:text-[#2a4a7a]"
+                          >
+                            {showAllReviews ? 'Show Less' : 'View All'}
+                          </button>
+                        )}
+                      </div>
+                      
+                      {reviews.length === 0 ? (
+                        <div className="text-center py-8">
+                          <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <MessageSquare className="w-8 h-8 text-gray-400" />
+                          </div>
+                          <h4 className="text-lg font-medium text-gray-900 mb-2">No Reviews Yet</h4>
+                          <p className="text-gray-600">Start reviewing your completed treks to help the community.</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-6">
+                          {(showAllReviews ? reviews : reviews.slice(0, 3)).map((review) => (
+                            <div key={review.id} className="border-b border-gray-100 pb-6 last:border-0 last:pb-0">
+                              <div className="flex items-start justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+                                    <img
+                                      src={review.eventImage}
+                                      alt={review.eventTitle}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  </div>
+                                  <div>
+                                    <h4 className="font-medium text-gray-900">{review.eventTitle}</h4>
+                                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                                      <span>Organizer: {review.organizerName}</span>
+                                      <span>•</span>
+                                      <span>{new Date(review.createdAt).toLocaleDateString()}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                <button
+                                  onClick={() => handleEditReview(review)}
+                                  className="text-sm text-gray-500 hover:text-gray-700"
+                                >
+                                  Edit
+                                </button>
+                              </div>
+                              
+                              {/* Rating */}
+                              <div className="flex items-center gap-2 mb-3">
+                                <div className="flex">
+                                  {[1, 2, 3, 4, 5].map((star) => (
+                                    <Star
+                                      key={star}
+                                      className={`w-5 h-5 ${
+                                        star <= review.rating
+                                          ? 'text-yellow-400 fill-current'
+                                          : 'text-gray-300'
+                                      }`}
+                                    />
+                                  ))}
+                                </div>
+                                <span className="text-sm font-medium text-gray-900">{review.rating}/5</span>
+                              </div>
+                              
+                              {/* Comment */}
+                              <p className="text-gray-700 mb-4">{review.comment}</p>
+                              
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
             {/* Wishlist Tab */}
             {activeTab === 'favorites' && (
               <div className="space-y-8">
@@ -748,6 +1106,19 @@ const HikerProfilePage = () => {
         </div>
       </div>
     </div>
+
+   <ReviewModal
+  isOpen={showReviewModal}
+  onClose={() => {
+    setShowReviewModal(false);
+    setSelectedReview(null);
+    setSelectedPendingReview(null);
+  }}
+  pendingReview={selectedPendingReview}
+  existingReview={selectedReview}
+  onSubmit={handleSubmitReview}
+  isSubmitting={isSubmittingReview}
+/>
 
       <ConfirmModal
         isOpen={isLogoutModalOpen}
