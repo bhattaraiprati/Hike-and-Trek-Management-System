@@ -1,9 +1,8 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Search, Calendar, MapPin, Users, Clock, Eye, Star, ChevronRight,
-  MessageCircle, Phone, Download, Share2, X, ChevronLeft,
-  AlertCircle, CheckCircle, User
+  Search, Calendar, MapPin, Users,  Eye, Star, ChevronRight,
+  MessageCircle,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchAllEventsByUserId } from '../../api/services/Event';

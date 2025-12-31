@@ -27,16 +27,11 @@ const ReviewModal = ({
 
 
   const handleSubmit = () => {
-    if (!rating) {
-      alert('Please select a rating');
-      return;
-    }
-    if (!comment.trim()) {
-      alert('Please write a review');
-      return;
-    }
-    onSubmit({ rating, comment: comment.trim() });
-  };
+  if (!rating) return alert('Please select a rating');
+  if (!comment.trim()) return alert('Please write a review');
+  
+  onSubmit({ rating, comment: comment.trim() });
+};
 
   const getTitle = () => {
     if (existingReview) return 'Edit Your Review';

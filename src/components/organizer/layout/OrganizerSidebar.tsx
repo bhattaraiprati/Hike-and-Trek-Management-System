@@ -6,12 +6,11 @@ import {
   Calendar,
   MessageSquare,
   User,
-  Settings,
   ChevronLeft,
   ChevronRight,
   Map,
   Mountain,
-  Users,
+  Landmark,
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
@@ -54,7 +53,8 @@ const OrganizerSidebar: React.FC<SidebarProps> = ({
     { id: 'events',         label: 'My Events',        icon: Calendar,          to: '/dashboard/events' },
     { id: 'create-event',   label: 'Create New Event', icon: Map,               to: '/dashboard/register' },
     { id: 'Chat',       label: 'Chat',         icon: MessageSquare,     to: '/dashboard/messages' },
-    { id: 'profile',        label: 'Profile / KYC',    icon: User,              to: '/dashboard/profile' },
+    { id: 'Payments',       label: 'Payments',         icon: Landmark,     to: '/dashboard/payments' },
+    { id: 'profile',        label: 'Profile',    icon: User,              to: '/dashboard/profile' },
   ];
 
   // Function to check if a menu item is active
