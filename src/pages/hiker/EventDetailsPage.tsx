@@ -11,6 +11,7 @@ interface OrganizerData {
   contactPerson: string;
   phone: string;
   about: string;
+  profileImageUrl: string;
   isVerified: boolean;
   totalEvents: number;
   totalParticipants: number;
@@ -233,7 +234,7 @@ const EventDetailsPage: React.FC = () => {
                           {/* Note: You don't have logoUrl in your entity, consider adding it */}
                           <img
                             // src={organizer?.logoUrl || '/default-organizer-logo.png'}
-                            src={'/default-organizer-logo.png'}
+                            src={organizer?.profileImageUrl}
                             alt={organizer.organizationName}
                             className="w-24 h-24 rounded-xl object-cover border-2 border-white shadow-md"
                           />
