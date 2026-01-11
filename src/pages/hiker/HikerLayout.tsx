@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Sidebar from '../../components/hiker/layout/Sidebar';
 import Header from '../../components/hiker/layout/Header';
 import { Outlet } from 'react-router-dom';
+import AIChatbot from '../../components/hiker/popup/AIChatbot';
 
 const HikerLayout = () => {
 
@@ -33,6 +34,9 @@ const HikerLayout = () => {
             {/* Your dashboard content goes here
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Welcome to Your Dashboard</h1>
             <p className="text-gray-600">Start exploring your hiking adventures!</p> */}
+
+            {/* Add AI Chatbot Component */}
+            <AIChatbot />
           </main>
         </div>
       </div>

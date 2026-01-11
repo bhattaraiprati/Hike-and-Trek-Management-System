@@ -57,7 +57,7 @@ const ExploreEventsPage = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 500]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 50000]);
   const [dateRange, setDateRange] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('latest');
   const [view, setView] = useState<'grid' | 'list'>('grid');
@@ -307,7 +307,7 @@ const queryClient = useQueryClient();
                     <input
                       type="range"
                       min="0"
-                      max="500"
+                      max="50000"
                       step="10"
                       value={priceRange[1]}
                       onChange={(e) => setPriceRange([0, parseInt(e.target.value)])}
@@ -566,8 +566,6 @@ const queryClient = useQueryClient();
             </button>
           </div>
         )}
-
-
         
          {pagination && (
         <Pagination 

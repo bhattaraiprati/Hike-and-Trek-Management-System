@@ -9,6 +9,7 @@ export interface PaymentSummary {
   currency: string;
   platformFee: number;
   totalParticipants: number;
+
 }
 
 export interface EventPayment {
