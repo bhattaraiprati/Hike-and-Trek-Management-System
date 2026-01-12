@@ -53,7 +53,6 @@ const AppRoutes = () => {
         <Route path="/hiker-dashboard" element={<HikerLayout />}>
           <Route index element={<DashboardPage />} />
 
-
           <Route path="payment-success" element={<PaymentSuccessPage />} />
           <Route path="events" element={<MyBookingsPage />} />
           <Route path="explore" element={<ExploreEventsPage />} />
