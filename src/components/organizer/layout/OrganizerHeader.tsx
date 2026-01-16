@@ -1,16 +1,14 @@
-import { useState, useRef, useEffect } from 'react';
-import { 
-  Search, 
-  Bell, 
+import { useState, useRef } from 'react';
+import {  
   User, 
   ChevronDown, 
-  MapPin, 
-  Calendar,
   Settings,
   LogOut,
   Menu
 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
+import { NotificationDropdown } from '../../common/NotificationDropdown';
+import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
   onMenuToggle?: () => void;
@@ -18,37 +16,9 @@ interface HeaderProps {
 }
 
 const OrganizerHeader: React.FC<HeaderProps> = ({ onMenuToggle }) => {
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const { logout } = useAuth();
-  const [notifications] = useState([
-    {
-      id: 1,
-      title: 'New Event Nearby',
-      message: 'Sunrise hike at Mount Trail this weekend',
-      time: '2 hours ago',
-      unread: true,
-      type: 'event'
-    },
-    {
-      id: 2,
-      title: 'Trail Condition Update',
-      message: 'River Crossing trail is now accessible',
-      time: '1 day ago',
-      unread: true,
-      type: 'update'
-    },
-    {
-      id: 3,
-      title: 'Friend Activity',
-      message: 'Sarah completed Annapurna Base Camp Trek',
-      time: '2 days ago',
-      unread: false,
-      type: 'social'
-    }
-  ]);
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
@@ -56,29 +26,10 @@ const OrganizerHeader: React.FC<HeaderProps> = ({ onMenuToggle }) => {
 
   const { user } = useAuth();
 
-  const searchRef = useRef<HTMLDivElement>(null);
-  const notificationsRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdowns when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setIsSearchFocused(false);
-      }
-      if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
-        setIsNotificationsOpen(false);
-      }
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
-        setIsUserMenuOpen(false);
-      }
-    };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const unreadCount = notifications.filter(n => n.unread).length;
+  // const unreadCount = notifications.filter(n => n.unread).length;
 
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -96,7 +47,7 @@ const OrganizerHeader: React.FC<HeaderProps> = ({ onMenuToggle }) => {
             </button>
 
             {/* Quick Search Bar */}
-            <div ref={searchRef} className="relative">
+            {/* <div ref={searchRef} className="relative">
               <div className="relative">
                 <input
                   type="text"
@@ -111,7 +62,7 @@ const OrganizerHeader: React.FC<HeaderProps> = ({ onMenuToggle }) => {
                 </div>
               </div>
 
-              {/* Search Suggestions Dropdown */}
+             
               {isSearchFocused && searchQuery && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden z-50">
                   <div className="p-2">
@@ -129,14 +80,15 @@ const OrganizerHeader: React.FC<HeaderProps> = ({ onMenuToggle }) => {
                   </div>
                 </div>
               )}
-            </div>
+            </div> */}
           </div>
 
           {/* Right Section - Navigation Icons */}
           <div className="flex items-center space-x-4">
             
+            <NotificationDropdown />
             {/* Notifications Bell */}
-            <div ref={notificationsRef} className="relative">
+            {/* <div ref={notificationsRef} className="relative">
               <button
                 onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
                 className="relative p-2 text-gray-500 hover:text-gray-700 transition-colors duration-300 rounded-lg hover:bg-gray-100"
@@ -149,7 +101,7 @@ const OrganizerHeader: React.FC<HeaderProps> = ({ onMenuToggle }) => {
                 )}
               </button>
 
-              {/* Notifications Dropdown */}
+              
               {isNotificationsOpen && (
                 <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden z-50">
                   <div className="p-4 border-b border-gray-200">
@@ -190,7 +142,7 @@ const OrganizerHeader: React.FC<HeaderProps> = ({ onMenuToggle }) => {
                   </div>
                 </div>
               )}
-            </div>
+            </div> */}
 
             {/* User Menu */}
             <div ref={userMenuRef} className="relative">
@@ -221,15 +173,11 @@ const OrganizerHeader: React.FC<HeaderProps> = ({ onMenuToggle }) => {
                   </div>
                   
                   <div className="p-2">
-                    <a href="/profile" className="flex items-center space-x-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+                    <a onClick={() => navigate("/dashboard/profile")} className="flex items-center space-x-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200">
                       <User className="w-4 h-4 text-gray-400" />
                       <span>Profile</span>
                     </a>
                     
-                    <a href="/settings" className="flex items-center space-x-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200">
-                      <Settings className="w-4 h-4 text-gray-400" />
-                      <span>Settings</span>
-                    </a>
                   </div>
 
                   <div className="p-2 border-t border-gray-200">

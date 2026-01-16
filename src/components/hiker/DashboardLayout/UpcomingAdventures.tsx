@@ -73,7 +73,7 @@ const UpcomingAdventures = ({ adventures, showTitle = true }: UpcomingAdventures
   };
 
   const handleViewDetails = (adventureId: number) => {
-    navigate(`/events/${adventureId}`);
+    navigate(`/hiker-dashboard/booking-confirmation/${adventureId}`);
   };
 
   if (adventures.length === 0) {
@@ -122,7 +122,7 @@ const UpcomingAdventures = ({ adventures, showTitle = true }: UpcomingAdventures
             <div
               key={adventure.id}
               className="group border border-gray-200 rounded-xl overflow-hidden hover:border-[#1E3A5F] transition-all duration-300 cursor-pointer"
-              onClick={() => handleViewDetails(adventure.id)}
+              onClick={() => handleViewDetails(adventure.bookingId)}
             >
               <div className="flex flex-col md:flex-row">
                 {/* Event Image */}

@@ -327,7 +327,7 @@ const EventDetailsPage: React.FC = () => {
                   {!isRegistered ? (
                     <>
                       <div className="text-center mb-6">
-                        <div className="text-4xl font-bold text-[#1E3A5F]">${event.price}</div>
+                        <div className="text-4xl font-bold text-[#1E3A5F]">NPR{event.price}</div>
                         <div className="text-sm text-gray-600">per person</div>
                       </div>
 
@@ -367,16 +367,16 @@ const EventDetailsPage: React.FC = () => {
                           <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
                             <div className="flex justify-between items-center mb-3">
                               <span className="text-gray-600">Price per person</span>
-                              <span className="font-medium">${event.price}</span>
+                              <span className="font-medium">NPR{event.price}</span>
                             </div>
                             <div className="flex justify-between items-center mb-3">
                               <span className="text-gray-600">Participants</span>
-                              <span className="font-medium">{participantsCount} × ${event.price}</span>
+                              <span className="font-medium">{participantsCount} × NPR{event.price}</span>
                             </div>
                             <div className="border-t border-gray-200 pt-3 mt-3">
                               <div className="flex justify-between items-center font-bold text-lg text-[#1E3A5F]">
                                 <span>Total Amount</span>
-                                <span>${event.price * participantsCount}</span>
+                                <span>NPR{event.price * participantsCount}</span>
                               </div>
                             </div>
                           </div>

@@ -194,9 +194,9 @@ const DashboardPage = () => {
 
           {/* Right Column - Sidebar Content */}
           <div className="space-y-8">
-            {dashboardData.quickActions && (
+            {/* {dashboardData.quickActions && (
               <QuickActionCards actions={dashboardData.quickActions} />
-            )}
+            )} */}
 
             {dashboardData.recentActivities && activeTab !== 'activity' && (
               <RecentActivityFeed 

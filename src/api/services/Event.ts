@@ -47,14 +47,22 @@ export const createEvent = async (data: EventCreateRequest) => {
   return response.data;
 }
 
-export const getOrganizerEvents = async (organizerId: number) => {
-  const response = await axios.get(`${urlLink}/organizer/event/organizer/${organizerId}`, {
+export const getOrganizerEvents = async (organizerId: number, params: {
+  query?: string,
+  eventStatus?: string,
+  page?: number,
+  size?: number,
+}) => {
+  const response = await axios.get(`${urlLink}/search`, {
     headers: {
-      Authorization: `Bearer ${localStorage.getItem("token")}`, 
+      Authorization: `Bearer ${localStorage.getItem('token')}`,
+    },
+    params: {
+      ...params,
+      organizerId,
     },
   });
-  return response.data; 
-
+  return response.data.results; // Returns the list of events (SearchResultDTO[])
 }
 
 export const updateEvent = async (eventId: number, data: Partial<EventCreateRequest>) => {

@@ -1,9 +1,10 @@
 // pages/organizer/PaymentManagementPage.tsx
 import { useState } from 'react';
 import { 
-  DollarSign, TrendingUp, Calendar, Users, 
+  DollarSign, TrendingUp,  Users, 
   CreditCard, Download, RefreshCw,
-  FileText
+  FileText,
+  Calendar
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import type { PaymentFilter } from '../../types/paymentTypes';
@@ -12,10 +13,43 @@ import EventPaymentsTable from '../../components/organizer/payments/EventPayment
 import ParticipantPaymentsTable from '../../components/organizer/payments/ParticipantPaymentsTable';
 import RevenueChart from '../../components/organizer/payments/RevenueChart';
 import PaymentFilters from '../../components/organizer/payments/PaymentFilters';
-import { getMockPaymentData } from '../../api/services/Payment';
+import axios from 'axios'; // Assuming axios is installed; install via npm if not
+import { useAuth } from '../../context/AuthContext';
 
+
+// TODO: Replace with actual base URL of your backend (e.g., 'http://localhost:8080' or '/api')
+axios.defaults.baseURL = 'http://localhost:8080/api'; // Adjust as needed for your environment
+
+const fetchPaymentDashboard = async (filters: PaymentFilter, organizerId: number) => {
+  const params = new URLSearchParams();
+
+  // Only add dates if they exist and are valid
+  if (filters.dateRange?.from) {
+    params.append('fromDate', filters.dateRange.from);
+  }
+  if (filters.dateRange?.to) {
+    params.append('toDate', filters.dateRange.to);
+  }
+
+  params.append('status', filters.status || 'ALL');
+  if (filters.eventId) {
+    params.append('eventId', filters.eventId.toString());
+  }
+  if (filters.paymentMethod && filters.paymentMethod !== 'ALL') {
+    params.append('paymentMethod', filters.paymentMethod);
+  }
+
+  const response = await axios.get(`/organizer/payments/dashboard/${organizerId}?${params.toString()}`,
+{
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('token')}`,
+    },
+});
+  return response.data;
+};
 
 const PaymentManagementPage = () => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'overview' | 'events' | 'participants'>('overview');
   const [filters, setFilters] = useState<PaymentFilter>({
     dateRange: {
@@ -26,10 +60,12 @@ const PaymentManagementPage = () => {
   });
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
 
+  // TODO: Replace with actual organizerId from auth context, user profile, or route params
+  const organizerId = Number(user?.id); // Placeholder; integrate with your authentication system
+
   const { data: paymentData, isLoading, refetch } = useQuery({
-    queryKey: ['organizerPayments', filters],
-    queryFn: () => getMockPaymentData(),
-    // queryFn: () => fetchPaymentDashboard(filters),
+    queryKey: ['organizerPayments', filters, organizerId],
+    queryFn: () => fetchPaymentDashboard(filters, organizerId),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -45,7 +81,7 @@ const PaymentManagementPage = () => {
   };
 
   const handleExportPayments = () => {
-    // Export functionality
+    // Export functionality (can be enhanced to call a backend export API if needed)
     alert('Exporting payment data...');
   };
 
@@ -82,7 +118,7 @@ const PaymentManagementPage = () => {
     );
   }
 
-  return (
+   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
@@ -99,7 +135,7 @@ const PaymentManagementPage = () => {
             </div>
             
             <div className="flex items-center gap-3">
-              <button
+              {/* <button
                 onClick={() => refetch()}
                 className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
               >
@@ -112,7 +148,7 @@ const PaymentManagementPage = () => {
               >
                 <Download className="w-4 h-4" />
                 Export
-              </button>
+              </button> */}
             </div>
           </div>
 
@@ -229,7 +265,7 @@ const PaymentManagementPage = () => {
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Avg. Payment</span>
                   <span className="font-bold text-green-600">
-                    ${paymentData?.summary?.averagePayment?.toFixed(2) || '0.00'}
+                    NPR{paymentData?.summary?.averagePayment?.toFixed(2) || '0.00'}
                   </span>
                 </div>
                 
@@ -243,7 +279,7 @@ const PaymentManagementPage = () => {
             </div>
 
             {/* Payment Methods */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+            {/* <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-[#1E3A5F] mb-6">Payment Methods</h3>
               
               <div className="space-y-3">
@@ -270,10 +306,10 @@ const PaymentManagementPage = () => {
                   </div>
                 ))}
               </div>
-            </div>
+            </div> */}
 
             {/* Quick Actions */}
-            <div className="bg-gradient-to-br from-[#1E3A5F] to-[#2a4a7a] rounded-2xl shadow-lg p-6">
+            {/* <div className="bg-gradient-to-br from-[#1E3A5F] to-[#2a4a7a] rounded-2xl shadow-lg p-6">
               <h3 className="text-lg font-semibold text-white mb-6">Quick Actions</h3>
               
               <div className="space-y-3">
@@ -292,7 +328,7 @@ const PaymentManagementPage = () => {
                   <span>Request Payout</span>
                 </button>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

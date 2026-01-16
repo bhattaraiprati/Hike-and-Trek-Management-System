@@ -75,7 +75,7 @@ const ParticipantPaymentsTable = ({
       case 'BANK_TRANSFER':
         return <div className="text-green-500 font-bold text-sm">B</div>;
       case 'CASH':
-        return <div className="text-gray-500 font-bold text-sm">$</div>;
+        return <div className="text-gray-500 font-bold text-sm">NPR</div>;
       default:
         return <CreditCard className="w-4 h-4 text-gray-400" />;
     }
@@ -119,7 +119,7 @@ const ParticipantPaymentsTable = ({
           <h2 className="text-xl font-bold text-gray-900">{title}</h2>
           {!compact && (
             <p className="text-sm text-gray-600 mt-1">
-              {filteredPayments.length} payments • ${totalAmount.toLocaleString()} total • {completedPayments} completed
+              {filteredPayments.length} payments • NPR{totalAmount.toLocaleString()} total • {completedPayments} completed
             </p>
           )}
         </div>
@@ -156,7 +156,7 @@ const ParticipantPaymentsTable = ({
                 
                 <div className="text-right">
                   <div className="font-bold text-gray-900">
-                    ${payment.amount}
+                    NPR{payment.amount}
                   </div>
                   <div className="flex items-center gap-1 justify-end">
                     <span className={`px-2 py-0.5 rounded-full text-xs ${status.color}`}>
@@ -240,7 +240,7 @@ const ParticipantPaymentsTable = ({
                       
                       <td className="px-6 py-4">
                         <div className="font-bold text-gray-900">
-                          ${payment.amount.toLocaleString()}
+                          NPR{payment.amount.toLocaleString()}
                         </div>
                       </td>
                       
@@ -303,7 +303,7 @@ const ParticipantPaymentsTable = ({
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <div className="text-sm text-gray-600">Total Amount</div>
-                <div className="text-xl font-bold text-green-600">${totalAmount.toLocaleString()}</div>
+                <div className="text-xl font-bold text-green-600">NPR{totalAmount.toLocaleString()}</div>
               </div>
               
               <div>
@@ -321,7 +321,7 @@ const ParticipantPaymentsTable = ({
               <div>
                 <div className="text-sm text-gray-600">Avg. Payment</div>
                 <div className="text-xl font-bold text-purple-600">
-                  ${(totalAmount / filteredPayments.length).toFixed(2)}
+                  NPR{(totalAmount / filteredPayments.length).toFixed(2)}
                 </div>
               </div>
             </div>

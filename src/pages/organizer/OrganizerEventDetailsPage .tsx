@@ -91,7 +91,7 @@ const OrganizerEventDetailsPage = () => {
   };
 
   const handleChatCreated = (chatRoomId: number) => {
-    navigate(`/dashboard/events/${eventId}/chat/${chatRoomId}`);
+    navigate(`/dashboard/messages`);
   };
 
   const handleSaveEvent = (updatedEvent: Event) => {
@@ -355,7 +355,7 @@ const OrganizerEventDetailsPage = () => {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Price:</span>
-                        <span className="font-bold text-[#1E3A5F]">${event?.price}</span>
+                        <span className="font-bold text-[#1E3A5F]">NPR{event?.price}</span>
                       </div>
                     </div>
                   </div>
@@ -457,7 +457,7 @@ const OrganizerEventDetailsPage = () => {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Total Revenue</span>
-                  <span className="font-bold text-purple-600">${event?.totalRevenue}</span>
+                  <span className="font-bold text-purple-600">NPR{event?.totalRevenue}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Average Rating</span>
@@ -501,7 +501,7 @@ const OrganizerEventDetailsPage = () => {
                   </div>
                 </button>
                 
-                <button
+                {/* <button
                   onClick={handleExportData}
                   className="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200 flex items-center gap-3"
                 >
@@ -510,7 +510,7 @@ const OrganizerEventDetailsPage = () => {
                     <div className="font-medium text-gray-900">Export Data</div>
                     <div className="text-sm text-gray-600">Download participant list</div>
                   </div>
-                </button>
+                </button> */}
 
                 <button
                   onClick={() => setShowDeleteEventModal(true)}

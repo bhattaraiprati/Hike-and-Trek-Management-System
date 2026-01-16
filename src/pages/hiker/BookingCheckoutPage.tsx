@@ -276,24 +276,6 @@ const handleEsewaRedirect = (paymentRequest: any) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // const validateStep3 = (): boolean => {
-  //   const newErrors: Record<string, string> = {};
-
-  //   if (paymentMethod.type === 'stripe') {
-  //     if (!paymentMethod.cardNumber || paymentMethod.cardNumber.replace(/\D/g, '').length !== 16) {
-  //       newErrors.cardNumber = 'Enter a valid 16-digit card number';
-  //     }
-  //     if (!paymentMethod.expiryDate || !/^\d{2}\/\d{2}$/.test(paymentMethod.expiryDate)) {
-  //       newErrors.expiryDate = 'Enter expiry date in MM/YY format';
-  //     }
-  //     if (!paymentMethod.cvv || paymentMethod.cvv.length !== 3) {
-  //       newErrors.cvv = 'Enter a valid 3-digit CVV';
-  //     }
-  //   }
-
-  //   setErrors(newErrors);
-  //   return Object.keys(newErrors).length === 0;
-  // };
 
   const handleNextStep = () => {
     if (currentStep === 1 && validateStep1()) {
@@ -664,67 +646,6 @@ const handleEsewaRedirect = (paymentRequest: any) => {
                     </div>
                   </div>
 
-                  {/* Card Details (if card selected) */}
-                  {/* {paymentMethod.type === 'stripe' && (
-                    <div className="border border-gray-200 rounded-xl p-6 bg-gray-50">
-                      <h3 className="font-medium text-gray-900 mb-4">Card Details</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Card Number *
-                          </label>
-                          <input
-                            type="text"
-                            value={paymentMethod.cardNumber || ''}
-                            onChange={(e) => updatePaymentMethod('cardNumber', e.target.value)}
-                            placeholder="1234 5678 9012 3456"
-                            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#1E3A5F] focus:border-transparent transition-all duration-200 ${
-                              errors.cardNumber ? 'border-red-300' : 'border-gray-300'
-                            }`}
-                          />
-                          {errors.cardNumber && (
-                            <p className="mt-1 text-sm text-red-600">{errors.cardNumber}</p>
-                          )}
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Expiry Date *
-                            </label>
-                            <input
-                              type="text"
-                              value={paymentMethod.expiryDate || ''}
-                              onChange={(e) => updatePaymentMethod('expiryDate', e.target.value)}
-                              placeholder="MM/YY"
-                              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#1E3A5F] focus:border-transparent transition-all duration-200 ${
-                                errors.expiryDate ? 'border-red-300' : 'border-gray-300'
-                              }`}
-                            />
-                            {errors.expiryDate && (
-                              <p className="mt-1 text-sm text-red-600">{errors.expiryDate}</p>
-                            )}
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              CVV *
-                            </label>
-                            <input
-                              type="text"
-                              value={paymentMethod.cvv || ''}
-                              onChange={(e) => updatePaymentMethod('cvv', e.target.value)}
-                              placeholder="123"
-                              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#1E3A5F] focus:border-transparent transition-all duration-200 ${
-                                errors.cvv ? 'border-red-300' : 'border-gray-300'
-                              }`}
-                            />
-                            {errors.cvv && (
-                              <p className="mt-1 text-sm text-red-600">{errors.cvv}</p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )} */}
 
                   {/* Payment Instructions */}
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -761,7 +682,7 @@ const handleEsewaRedirect = (paymentRequest: any) => {
                       ) : (
                         <>
                           <CreditCard className="w-4 h-4" />
-                          Pay ${totalAmount}
+                          Pay NPR{totalAmount}
                         </>
                       )}
                     </button>
@@ -796,16 +717,16 @@ const handleEsewaRedirect = (paymentRequest: any) => {
                   <div className="space-y-3 mb-6">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Price per person</span>
-                      <span className="font-medium">${eventInfo.price}</span>
+                      <span className="font-medium">NPR{eventInfo.price}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Participants</span>
-                      <span className="font-medium">{participants.length} × ${eventInfo.price}</span>
+                      <span className="font-medium">{participants.length} × NPR{eventInfo.price}</span>
                     </div>
                     <div className="border-t border-gray-200 pt-3">
                       <div className="flex justify-between font-bold text-lg">
                         <span>Total Amount</span>
-                        <span className="text-[#1E3A5F]">${totalAmount}</span>
+                        <span className="text-[#1E3A5F]">NPR{totalAmount}</span>
                       </div>
                     </div>
                   </div>

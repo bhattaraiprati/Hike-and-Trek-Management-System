@@ -28,6 +28,7 @@ export interface HikerStats {
 // Upcoming Adventure
 export interface UpcomingAdventure {
   id: number;
+  bookingId: number;
   title: string;
   location: string;
   date: string; // ISO date string
