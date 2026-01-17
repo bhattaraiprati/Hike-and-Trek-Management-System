@@ -2,7 +2,6 @@ import { useState, useRef } from 'react';
 import {  
   User, 
   ChevronDown, 
-  Settings,
   LogOut,
   Menu
 } from 'lucide-react';

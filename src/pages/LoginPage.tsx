@@ -18,6 +18,7 @@ import { urlLink } from "../api/axiosConfig";
 import { jwtDecode } from "jwt-decode";
 import { useRedirectIfAuthenticated } from "../hooks/useRedirectIfAuthenticated";
 import { useAuth } from "../context/AuthContext";
+import LogoName from "../components/common/logo/LogoName";
 
 interface DecodedToken {
   sub?: string;
@@ -202,8 +203,10 @@ const LoginPage = () => {
             {/* Header */}
             <div className="text-center mb-4">
               <div className="flex justify-center mb-2">
-                <div className="w-12 h-12 bg-gradient-to-br from-[#1B4332] to-[#2C5F8D] rounded-2xl flex items-center justify-center">
-                  <Zap className="w-6 h-6 text-white" />
+                <div className="w-60 h-82">
+                  {/* <Zap className="w-6 h-6 text-white" /> */}
+                <LogoName className="w-0 h-0"/>
+
                 </div>
               </div>
               <h1 className="text-3xl font-bold text-gray-900 mb-1">
