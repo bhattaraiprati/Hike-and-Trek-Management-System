@@ -1,3 +1,4 @@
+import { Outlet } from "react-router-dom"
 import AIChatbotShowcase from "../components/landing/AIChatbotShowcase"
 import FeaturesSection from "../components/landing/FeaturesSection"
 import Footer from "../components/landing/Footer"
@@ -16,6 +17,7 @@ const LandingPage = () => {
     <HowItWorksSection/>
     <AIChatbotShowcase/>
     <Footer/>
+    <Outlet/>
     </>
   )
 }

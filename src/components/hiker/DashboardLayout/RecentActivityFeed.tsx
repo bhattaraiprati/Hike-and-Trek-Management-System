@@ -60,8 +60,8 @@ import type { RecentActivity } from '../../../types/HikerTypes';
     };
   
     const handleActivityClick = (activity: RecentActivity) => {
-      if (activity.eventId) {
-        navigate(`/events/${activity.eventId}`);
+      if (activity.id) {
+        navigate(`/hiker-dashboard/booking-confirmation/${activity.id}`);
       }
     };
   
@@ -81,9 +81,8 @@ import type { RecentActivity } from '../../../types/HikerTypes';
   
     return (
       <div className={`bg-white rounded-2xl shadow-sm border border-gray-200 ${compact ? 'p-4' : 'p-6'}`}>
-        {!compact && (
+       
           <h2 className="text-xl font-bold text-gray-900 mb-6">Recent Activity</h2>
-        )}
   
         <div className="space-y-3">
           {activities.map((activity) => (
@@ -103,7 +102,7 @@ import type { RecentActivity } from '../../../types/HikerTypes';
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h4 className="font-medium text-gray-900">{activity.title}</h4>
+                    <p className="font-semib  old text-[16px] text-gray-900">{activity.title}</p>
                     <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
                   </div>
                   {!compact && !activity.isRead && (
@@ -114,7 +113,7 @@ import type { RecentActivity } from '../../../types/HikerTypes';
                 <div className="flex items-center gap-2 mt-2">
                   <Clock className="w-3 h-3 text-gray-400" />
                   <span className="text-xs text-gray-500">{formatTime(activity.timestamp)}</span>
-                  {activity.eventId && (
+                  {activity.id && (
                     <>
                       <span className="text-gray-300">•</span>
                       <button className="text-xs text-[#1E3A5F] hover:text-[#2a4a7a] flex items-center gap-1">

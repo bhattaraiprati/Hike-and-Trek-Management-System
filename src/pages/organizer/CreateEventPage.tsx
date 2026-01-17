@@ -331,7 +331,7 @@ const CreateEventPage = () => {
                 {/* Price */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Price per Person ($) *
+                    Price per Person (NPR) *
                   </label>
                   <input
                     type="number"

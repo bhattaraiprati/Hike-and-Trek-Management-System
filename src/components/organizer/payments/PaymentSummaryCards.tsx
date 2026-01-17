@@ -36,7 +36,7 @@ const PaymentSummaryCards = ({ summary }: PaymentSummaryCardsProps) => {
       title: 'Refunded',
       value: summary.refundedPayments.toLocaleString(),
       icon: <AlertCircle className="w-6 h-6" />,
-      color: 'bg-gradient-to-r from-red-500 to-pink-600',
+      color: 'bg-gradient-to-r  from-red-500 to-pink-600',
       change: 'Returned to customers',
       description: 'Refunded amounts',
     },
@@ -52,7 +52,7 @@ const PaymentSummaryCards = ({ summary }: PaymentSummaryCardsProps) => {
                 {card.icon}
               </div>
             </div>
-            <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+            <span className={`text-xs font-medium px-4 py-1 rounded-full ${
               index === 0 && summary.monthlyGrowth > 0 
                 ? 'bg-green-100 text-green-800'
                 : index === 2

@@ -380,14 +380,7 @@ const MyBookingsPage: React.FC = () => {
                             </button>
                           )}
 
-                          {booking.chatRoom && (
-                            <button
-                              onClick={() => handleJoinChat(booking.chatRoom!.id)}
-                              className="p-3 bg-indigo-500 text-white rounded-xl hover:bg-indigo-600"
-                            >
-                              <MessageCircle className="w-5 h-5" />
-                            </button>
-                          )}
+                          
 
                           <button
                             onClick={() => openDrawer(booking)}

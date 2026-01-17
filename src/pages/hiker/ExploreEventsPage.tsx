@@ -162,10 +162,10 @@ const queryClient = useQueryClient();
   },
   onError: (err, eventId, context) => {
     queryClient.setQueryData(['favorites'], context?.previousIds);
-    console.error('Failed to toggle favorite:', err);
+    console.error('Failed to toggle favorite:', err, eventId);
   },
   onSettled: () => {
-    queryClient.invalidateQueries({ queryKey: ['favorites'] });
+    queryClient.invalidateQueries({ queryKey: ['favorites', 'favoriteEvents'] });
   },
 });
 
@@ -262,8 +262,6 @@ const queryClient = useQueryClient();
                   <option value="latest">Latest</option>
                   <option value="price-low">Price: Low to High</option>
                   <option value="price-high">Price: High to Low</option>
-                  <option value="rating">Highest Rated</option>
-                  <option value="participants">Most Popular</option>
                 </select>
 
                 {/* Filter Toggle */}
@@ -302,7 +300,7 @@ const queryClient = useQueryClient();
                   {/* Price Range */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Price Range: ${priceRange[0]} - ${priceRange[1]}
+                      Price Range: NPR{priceRange[0]} - NPR{priceRange[1]}
                     </label>
                     <input
                       type="range"
@@ -350,7 +348,7 @@ const queryClient = useQueryClient();
               )}
               {priceRange[1] < 500 && (
                 <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
-                  Under ${priceRange[1]}
+                  Under NPR{priceRange[1]}
                 </span>
               )}
             </div>
@@ -399,7 +397,7 @@ const queryClient = useQueryClient();
                 <div className="p-5">
                   <div className="flex items-start justify-between mb-3">
                     <h3 className="font-bold text-lg text-gray-900 line-clamp-1 flex-1">{event.title}</h3>
-                    <span className="text-xl font-bold text-[#1E3A5F] ml-2">${event.price}</span>
+                    <span className="text-xl font-bold text-[#1E3A5F] ml-2">NPR{event.price}</span>
                   </div>
 
                   <p className="text-gray-600 text-sm mb-4 line-clamp-2">{event.description}</p>
@@ -530,7 +528,7 @@ const queryClient = useQueryClient();
                         </div>
                       </div> */}
                       <div className="flex items-center gap-4">
-                        <span className="text-2xl font-bold text-[#1E3A5F]">${event.price}</span>
+                        <span className="text-2xl font-bold text-[#1E3A5F]">NPR{event.price}</span>
                         <button onClick={() => handleEventView(event.id)} className="px-6 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4a7a] transition-colors duration-200 font-medium">
                           View Details
                         </button>

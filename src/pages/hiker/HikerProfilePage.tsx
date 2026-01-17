@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { formatDistanceToNow } from 'date-fns';
 import { 
   User, Calendar, Heart, MapPin, 
-  Star, Camera, Users, Clock, 
+  Star, Camera,  Clock, 
    TrendingUp, 
   ChevronRight, LogOut,
   WalletCards,
@@ -9,6 +10,7 @@ import {
   CheckCircle,
   AlertCircle,
   MessageSquare,
+  Loader2,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { getProfileUrl, uploadImage } from '../../api/services/authApi';
@@ -18,9 +20,11 @@ import { useNavigate } from 'react-router-dom';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import ReviewModal from '../../components/hiker/popup/ReviewModal';
 import type { PendingReview, Review, ReviewStats } from '../../types/HikerTypes';
-import axios from 'axios';
-import { urlLink } from '../../api/axiosConfig';
+
 import { fetchMyReviews, fetchPendingReviews, submitReview, updateReview } from '../../api/services/ReviewApi';
+import { getFavoriteEvents, getRecentActivity, toggleFavourite } from '../../api/services/Profile';
+import { toast } from 'react-toastify';
+import type { FavouriteEvent } from '../../types/Profile';
 
 
 interface UpcomingEvent {
@@ -82,26 +86,6 @@ export interface BookingResponse {
 // For API response with array
 export type BookingListResponse = BookingResponse[];
 
-interface FavoriteEvent {
-  id: number;
-  title: string;
-  date: string;
-  location: string;
-  organizer: string;
-  price: number;
-  difficulty: 'Easy' | 'Moderate' | 'Difficult' | 'Expert';
-  spotsLeft: number;
-  bannerImageUrl: string;
-}
-
-interface Activity {
-  id: number;
-  type: 'booking' | 'review' | 'favorite' | 'share' | 'achievement';
-  title: string;
-  description: string;
-  date: string;
-  icon: string;
-}
 
 const HikerProfilePage = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -128,88 +112,45 @@ const HikerProfilePage = () => {
     const [showAllPending, setShowAllPending] = useState(false);
     const [showAllReviews, setShowAllReviews] = useState(false);
 
-  const [favoriteEvents, setFavoriteEvents] = useState<FavoriteEvent[]>([
-    {
-      id: 1,
-      title: 'Himalayan Base Camp Trek',
-      date: '2024-09-15',
-      location: 'Himalayan Range',
-      organizer: 'High Altitude Adventures',
-      price: 499,
-      difficulty: 'Expert',
-      spotsLeft: 5,
-      bannerImageUrl: 'https://images.unsplash.com/photo-1551632811-561732d1e306?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'
-    },
-    {
-      id: 2,
-      title: 'Jungle Safari Adventure',
-      date: '2024-10-20',
-      location: 'Wildlife Sanctuary',
-      organizer: 'Wildlife Tours',
-      price: 299,
-      difficulty: 'Moderate',
-      spotsLeft: 12,
-      bannerImageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'
-    },
-    {
-      id: 3,
-      title: 'Desert Stargazing Tour',
-      date: '2024-11-05',
-      location: 'Sahara Desert',
-      organizer: 'Desert Explorers',
-      price: 399,
-      difficulty: 'Difficult',
-      spotsLeft: 8,
-      bannerImageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'
-    }
-  ]);
 
-  const [activities, setActivities] = useState<Activity[]>([
-    {
-      id: 1,
-      type: 'booking',
-      title: 'Booked "Sunrise Mountain Trek"',
-      description: 'Successfully booked for June 15, 2024',
-      date: '2024-05-20',
-      icon: '📅'
-    },
-    {
-      id: 2,
-      type: 'review',
-      title: 'Reviewed "Coastal Cliff Walk"',
-      description: 'Gave 4.5 stars and detailed feedback',
-      date: '2024-04-18',
-      icon: '⭐'
-    },
-    {
-      id: 3,
-      type: 'achievement',
-      title: 'Earned "Mountain Explorer" badge',
-      description: 'Completed 5 mountain treks',
-      date: '2024-03-25',
-      icon: '🏆'
-    },
-    {
-      id: 4,
-      type: 'favorite',
-      title: 'Added "Himalayan Trek" to wishlist',
-      description: 'Saved for future booking',
-      date: '2024-05-10',
-      icon: '❤️'
-    },
-    {
-      id: 5,
-      type: 'share',
-      title: 'Shared "Forest Valley" event',
-      description: 'Shared with 3 friends',
-      date: '2024-05-05',
-      icon: '↗️'
-    }
-  ]);
+  const { 
+    data: favoriteEvents = [], 
+  } = useQuery({
+    queryKey: ["favoriteEvents"],
+    queryFn: getFavoriteEvents,
+    staleTime: 30 * 1000, // 1 minute
+  });
 
-  if(!user){
-    setActivities([]);
-  }
+  const toggleMutation = useMutation({
+    mutationFn: toggleFavourite,
+    onMutate: async (eventId) => {
+      // Optimistic update
+      await queryClient.cancelQueries({ queryKey: ["favoriteEvents"] });
+      
+      const previous = queryClient.getQueryData<FavouriteEvent[]>(["favoriteEvents"]);
+      
+      queryClient.setQueryData<FavouriteEvent[]>(["favoriteEvents"], (old = []) =>
+        old.filter(e => e.eventId !== eventId)
+      );
+      
+      return { previous };
+    },
+    
+    onSettled: () => {
+      // Refetch anyway (safe net)
+      queryClient.invalidateQueries({ queryKey: ["favoriteEvents"] });
+    },
+    onSuccess: (isNowFavourite) => {
+      if (!isNowFavourite) {
+        toast.success("Removed from wishlist");
+      }
+    }
+  });
+
+  const handleToggleFavourite = (eventId: number) => {
+    toggleMutation.mutate(eventId);
+  };
+
 
   const {data: profileImageUrl} = useQuery({
     queryKey: ["profileUrl", user?.id],
@@ -238,10 +179,21 @@ const HikerProfilePage = () => {
   enabled: activeTab === 'review'
 });
 
+
 const { data: pendingReviewsData = [] } = useQuery<PendingReview[]>({
   queryKey: ['pendingReviews'],
   queryFn: fetchPendingReviews,
   enabled: activeTab === 'review'
+});
+
+const { 
+  data: recentActivityData = [], 
+  isLoading: isLoadingActivity,
+  isError: isActivityError 
+} = useQuery({
+  queryKey: ['recentActivity'],
+  queryFn: getRecentActivity,
+  staleTime: 30000,
 });
 
 const submitMutation = useMutation({
@@ -322,9 +274,39 @@ const submitMutation = useMutation({
     }
   };
 
-  const removeFromFavorites = (eventId: number) => {
-    setFavoriteEvents(favoriteEvents.filter(event => event.id !== eventId));
+  const getActivityColor = (type: string): string => {
+  const colors: Record<string, string> = {
+    PAYMENT: 'border-green-200 bg-green-50/50',
+    REGISTRATION: 'border-blue-200 bg-blue-50/50',
+    REVIEW: 'border-yellow-200 bg-yellow-50/50',
+    BOOKING_CONFIRMATION: 'border-green-200 bg-green-50/50',
+    BOOKING_CANCELLED: 'border-red-200 bg-red-50/50',
+    EVENT_APPROVED: 'border-green-200 bg-green-50/50',
+    EVENT_REJECTED: 'border-red-200 bg-red-50/50',
+    NEW_PARTICIPANT: 'border-purple-200 bg-purple-50/50',
+    PAYMENT_RECEIVED: 'border-emerald-200 bg-emerald-50/50',
+    TREK_UPDATE: 'border-indigo-200 bg-indigo-50/50',
+    NEW_MESSAGE: 'border-blue-200 bg-blue-50/50',
   };
+  return colors[type] || 'border-gray-200 bg-gray-50/50';
+};
+const getActivityIcon = (type: string): string => {
+  const icons: Record<string, string> = {
+    PAYMENT: '💰',
+    REGISTRATION: '📝',
+    REVIEW: '⭐',
+    BOOKING_CONFIRMATION: '✅',
+    BOOKING_CANCELLED: '❌',
+    EVENT_APPROVED: '✅',
+    EVENT_REJECTED: '❌',
+    NEW_PARTICIPANT: '👤',
+    PAYMENT_RECEIVED: '💵',
+    TREK_UPDATE: '🏔️',
+    NEW_MESSAGE: '💬',
+  };
+  return icons[type] || '📌';
+};
+
 
   const handleFileInput = () => {
     fileInputRef.current?.click();
@@ -489,7 +471,7 @@ const handleSubmitReview = async (reviewData: {
                       <UserStar className="w-5 h-5" />
                       <span>Reviews</span>
                       <span className="ml-auto bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">
-                        {favoriteEvents.length}
+                        {reviews.length}
                       </span>
                     </button>
                   </li>
@@ -506,7 +488,7 @@ const handleSubmitReview = async (reviewData: {
                       <WalletCards className="w-5 h-5" />
                       <span>Payment History</span>
                       <span className="ml-auto bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">
-                        {favoriteEvents.length}
+                        {eventHistory.length}
                       </span>
                     </button>
                   </li>
@@ -532,73 +514,93 @@ const handleSubmitReview = async (reviewData: {
           <div className="lg:col-span-2">
             {/* Profile Overview Tab */}
             {activeTab === 'overview' && (
-              <div className="space-y-8">
+                <div className="space-y-8">
+                  {/* Recent Activity */}
+                  <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-lg font-semibold text-[#1E3A5F]">Recent Activity</h3>
+                      {!isLoadingActivity && recentActivityData.length > 0 && (
+                        <span className="text-sm text-gray-500">
+                          {recentActivityData.length} {recentActivityData.length === 1 ? 'activity' : 'activities'}
+                        </span>
+                      )}
+                    </div>
 
-                {/* Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="p-3 bg-blue-100 rounded-lg">
-                        <Calendar className="w-6 h-6 text-blue-600" />
+                    {/* Loading State */}
+                    {isLoadingActivity && (
+                      <div className="flex items-center justify-center py-12">
+                        <Loader2 className="w-8 h-8 animate-spin text-[#1E3A5F]" />
                       </div>
-                      <TrendingUp className="w-5 h-5 text-green-600" />
-                    </div>
-                    {/* <div className="text-2xl font-bold text-gray-900 mb-1">{profile.stats.totalEvents}</div> */}
-                    <div className="text-sm text-gray-600">Total Events</div>
+                    )}
+
+                    {/* Error State */}
+                    {isActivityError && !isLoadingActivity && (
+                      <div className="text-center py-12">
+                        <p className="text-red-600 text-sm">
+                          Failed to load recent activity. Please try again later.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Empty State */}
+                    {!isLoadingActivity && !isActivityError && recentActivityData.length === 0 && (
+                      <div className="text-center py-12">
+                        <div className="text-6xl mb-4">🏔️</div>
+                        <p className="text-gray-500 text-sm">No recent activity yet</p>
+                        <p className="text-gray-400 text-xs mt-2">
+                          Start exploring treks to see your activity here
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Activity List */}
+                    {!isLoadingActivity && !isActivityError && recentActivityData.length > 0 && (
+                      <div className="space-y-3">
+                        {recentActivityData.map((activity: any) => (
+                          <div 
+                            key={`${activity.type}-${activity.id}-${activity.timestamp}`}
+                            className={`flex items-center gap-4 p-4 border rounded-lg hover:shadow-md transition-all duration-200 cursor-pointer group ${getActivityColor(activity.type)}`}
+                          >
+                            <div className="text-3xl flex-shrink-0 group-hover:scale-110 transition-transform duration-200">
+                              {getActivityIcon(activity.type)}
+                            </div>
+                            
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-gray-900 mb-1">
+                                {activity.title}
+                              </div>
+                              <div className="text-sm text-gray-600 line-clamp-1">
+                                {activity.description}
+                              </div>
+                            </div>
+                            
+                            <div className="text-right flex-shrink-0">
+                              <div className="text-xs text-gray-500 mb-1">
+                                {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
+                              </div>
+                              <div className="text-xs text-gray-400">
+                                {new Date(activity.timestamp).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric'
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* View All Button */}
+                    {!isLoadingActivity && recentActivityData.length >= 10 && (
+                      <div className="mt-6 text-center">
+                        <button className="text-sm text-[#1E3A5F] hover:text-[#2C5F8D] font-medium hover:underline">
+                          View all activity
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="p-3 bg-green-100 rounded-lg">
-                        <Users className="w-6 h-6 text-green-600" />
-                      </div>
-                      <TrendingUp className="w-5 h-5 text-green-600" />
-                    </div>
-                    {/* <div className="text-2xl font-bold text-gray-900 mb-1">{profile.stats.completedEvents}</div> */}
-                    <div className="text-sm text-gray-600">Completed</div>
-                  </div>
-                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="p-3 bg-purple-100 rounded-lg">
-                        <MapPin className="w-6 h-6 text-purple-600" />
-                      </div>
-                      <TrendingUp className="w-5 h-5 text-green-600" />
-                    </div>
-                    {/* <div className="text-2xl font-bold text-gray-900 mb-1">{profile.stats.totalDistance}km</div> */}
-                    <div className="text-sm text-gray-600">Total Distance</div>
-                  </div>
-                  {/* <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="p-3 bg-yellow-100 rounded-lg">
-                        <Star className="w-6 h-6 text-yellow-600" />
-                      </div>
-                      <TrendingUp className="w-5 h-5 text-green-600" />
-                    </div>
-                    <div className="text-2xl font-bold text-gray-900 mb-1">{profile.stats.averageRating}</div>
-                    <div className="text-sm text-gray-600">Avg Rating</div>
-                  </div> */}
                 </div>
-
-
-                {/* Recent Activity */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-[#1E3A5F] mb-6">Recent Activity</h3>
-                  <div className="space-y-4">
-                    {activities.map((activity) => (
-                      <div key={activity.id} className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                        <div className="text-2xl">{activity.icon}</div>
-                        <div className="flex-1">
-                          <div className="font-medium text-gray-900">{activity.title}</div>
-                          <div className="text-sm text-gray-600">{activity.description}</div>
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {new Date(activity.date).toLocaleDateString()}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
+              )}
 
             {/* My Events Tab */}
             {activeTab === 'events' && (
@@ -613,7 +615,7 @@ const handleSubmitReview = async (reviewData: {
                     </button>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
                     {upcomingEvents.map((event) => (
                       <div key={event.id} className="border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow duration-200">
                         <div className="h-40 bg-gray-200">
@@ -931,35 +933,49 @@ const handleSubmitReview = async (reviewData: {
             {/* Wishlist Tab */}
             {activeTab === 'favorites' && (
               <div className="space-y-8">
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-lg font-semibold text-[#1E3A5F]">My Wishlist ({favoriteEvents.length})</h3>
-                    <button className="text-[#1E3A5F] hover:text-[#2a4a7a] text-sm font-medium">
-                      Clear All
-                    </button>
-                  </div>
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-lg font-semibold text-[#1E3A5F]">
+                    My Wishlist ({favoriteEvents.length})
+                  </h3>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                </div>
+
+                {favoriteEvents.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500">
+                    Your wishlist is empty
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
                     {favoriteEvents.map((event) => (
-                      <div key={event.id} className="border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow duration-200">
+                      <div 
+                        key={event.favouriteId} 
+                        className="border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow duration-200"
+                      >
                         <div className="relative">
                           <div className="h-40 bg-gray-200">
                             <img
-                              src={event.bannerImageUrl}
+                              src={event.imageUrl}
                               alt={event.title}
                               className="w-full h-full object-cover"
+                              onError={(e) => { e.currentTarget.src = "/fallback-event.jpg" }}
                             />
                           </div>
+
                           <button
-                            onClick={() => removeFromFavorites(event.id)}
+                            onClick={() => handleToggleFavourite(event.eventId)}
                             className="absolute top-3 right-3 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors duration-200"
+                            disabled={toggleMutation.isPending}
                           >
                             <Heart className="w-4 h-4 fill-current" />
                           </button>
                         </div>
+
                         <div className="p-4">
-                          <h4 className="font-medium text-gray-900 mb-2 line-clamp-1">{event.title}</h4>
-                          
+                          <h4 className="font-medium text-gray-900 mb-2 line-clamp-1">
+                            {event.title}
+                          </h4>
+
                           <div className="space-y-2 text-sm text-gray-600 mb-4">
                             <div className="flex items-center gap-1">
                               <Calendar className="w-4 h-4" />
@@ -974,14 +990,18 @@ const handleSubmitReview = async (reviewData: {
                                 {event.difficulty}
                               </span>
                               <span className="text-red-600 text-xs">
-                                {event.spotsLeft} spots left
+                                {event.maxParticipants - event.currentParticipants} spots left
                               </span>
                             </div>
                           </div>
 
                           <div className="flex justify-between items-center mb-4">
-                            <div className="text-lg font-bold text-[#1E3A5F]">${event.price}</div>
-                            <div className="text-sm text-gray-500">{event.organizer}</div>
+                            <div className="text-lg font-bold text-[#1E3A5F]">
+                              ${event.price.toLocaleString()}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {event.organizerName}
+                            </div>
                           </div>
 
                           <button className="w-full px-4 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4a7a] transition-colors duration-200 text-sm">
@@ -991,8 +1011,9 @@ const handleSubmitReview = async (reviewData: {
                       </div>
                     ))}
                   </div>
-                </div>
+                )}
               </div>
+            </div>
             )}
 
             {/* Payment History Tab */}

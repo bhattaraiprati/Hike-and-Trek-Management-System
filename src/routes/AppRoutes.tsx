@@ -21,16 +21,24 @@ import OrganizerEventDetailsPage from "../pages/organizer/OrganizerEventDetailsP
 import ChatInterface from "../components/chat/ChatInterface";
 import OrganizerProfilePage from "../pages/organizer/OrganizerProfilePage";
 import PaymentSuccessPage from "../pages/hiker/PaymentSuccessPage";
-import PaymentManagementPage from "../pages/organizer/PaymentManagementPage";
+import AdminLayout from "../pages/admin/AdminLayout";
+import OrganizerPaymentPage from "../pages/organizer/OrganizerPaymentPage";
+import AdminDashboard from "../pages/admin/AdminDashboard";
+import OrganizerVerificationPage from "../pages/admin/OrganizerVerificationPage";
+import UserManagementPage from "../pages/admin/UserManagementPage";
+import AdminPaymentManagementPage from "../pages/admin/AdminPaymentManagementPage";
+import AdminEventManagementPage from "../pages/admin/AdminEventManagementPage";
+import AboutPage from "../pages/AboutPage";
 
 const AppRoutes = () => {
   return (
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<LandingPage />} />
+      <Route path="/about" element={<AboutPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<OrganizerRegistration />} />
-      <Route path="/oauth/callback" element={<OAuthCallback />} />
+      <Route path="/auth/callback" element={<OAuthCallback />} />
 
       {/* Protected Organizer Routes */}
       <Route element={<ProtectedRoute allowedRoles={["ORGANIZER"]} />}>
@@ -42,7 +50,7 @@ const AppRoutes = () => {
           <Route path="register" element={<CreateEventPage />} />
           {/* <Route path="participants" element={<OrganizerEventDetailsPage />} /> */}
           <Route path="messages" element={<ChatInterface/>} />
-          <Route path="payments" element={<PaymentManagementPage />} />
+          <Route path="payments" element={<OrganizerPaymentPage />} />
           <Route path="profile" element={<OrganizerProfilePage />} />
           <Route path="settings" element={<div>Settings Page</div>} />
         </Route>
@@ -62,6 +70,18 @@ const AppRoutes = () => {
           <Route path="messages" element={<ChatInterface/>} />
           <Route path="booking-confirmation" element={<PaymentFailurePage />} />
           <Route path="booking-confirmation/:bookingId" element={<BookingConfirmationPage />} />
+        </Route>
+      </Route>
+      <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
+        <Route path="/admin-dashboard" element={<AdminLayout />}>
+          <Route index element={<AdminDashboard />} />
+
+          <Route path="organizer-verification" element={<OrganizerVerificationPage />} />
+          <Route path="userManagement" element={<UserManagementPage />} />
+          <Route path="payments" element={<AdminPaymentManagementPage />} />
+          <Route path="events" element={<AdminEventManagementPage />} />
+
+
         </Route>
       </Route>
     </Routes>

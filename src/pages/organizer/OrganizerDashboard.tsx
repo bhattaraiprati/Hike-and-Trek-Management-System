@@ -2,8 +2,10 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../../context/AuthContext';
 import { getOrganizerDashboard, type DashboardData } from '../../api/services/Dashboard';
+import { useNavigate } from 'react-router-dom';
 
 const OrganizerDashboard: React.FC = () => {
+  const navigation = useNavigate();
   const { user } = useAuth();
 
   // Fetch dashboard data
@@ -15,15 +17,16 @@ const OrganizerDashboard: React.FC = () => {
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'Easy': return 'bg-[#2D5016]';
-      case 'Moderate': return 'bg-[#1B4332]';
-      case 'Hard': return 'bg-[#1E3A5F]';
+      case 'Easy': return 'bg-green-100 text-green-800';
+      case 'Moderate': return 'bg-yellow-100 text-yellow-800';
+      case 'Hard': return 'bg-orange-100 text-orange-800';
+      case 'Extreme': return 'bg-red-100 text-red-800';
       default: return 'bg-[#495057]';
     }
   };
 
   const getStatusColor = (status: string) => {
-    return status === 'Confirmed' ? 'bg-[#2D5016]' : 'bg-[#FF6B35]';
+    return status === 'Confirmed' ? 'text-green-800 bg-green-100 ' : 'bg-red-100 text-red-800';
   };
 
   const getNotificationIcon = (type: string) => {
@@ -137,7 +140,7 @@ const OrganizerDashboard: React.FC = () => {
                 <h2 className="font-heading text-xl font-semibold text-[#1B4332]">
                   Upcoming Events
                 </h2>
-                <button className="font-body text-sm text-[#1B4332] hover:text-[#2D5016] transition-colors">
+                <button onClick={() =>navigation("/dashboard/events")} className="font-body text-sm text-[#1B4332] hover:text-[#2D5016] transition-colors">
                   View All
                 </button>
               </div>
@@ -163,7 +166,7 @@ const OrganizerDashboard: React.FC = () => {
                         <h3 className="font-heading font-semibold text-[#1B4332]">
                           {event.title}
                         </h3>
-                        <span className={`${getDifficultyColor(event.difficulty)} text-white text-xs px-2 py-1 rounded-full font-body`}>
+                        <span className={`${getDifficultyColor(event.difficulty)}  text-xs px-2 py-1 rounded-full font-body`}>
                           {event.difficulty}
                         </span>
                       </div>
@@ -179,7 +182,7 @@ const OrganizerDashboard: React.FC = () => {
                         </div>
                       </div>
                       
-                      <button className="w-full bg-[#1B4332] text-white font-body text-sm py-2 rounded-lg hover:bg-[#2D5016] transition-colors">
+                      <button className="w-full bg-[#1E3A5F] text-white font-body text-sm py-2 rounded-lg hover:bg-[#2a4a7a] transition-colors">
                         Manage Event
                       </button>
                     </div>
@@ -203,7 +206,7 @@ const OrganizerDashboard: React.FC = () => {
                       <th className="text-left font-body text-sm text-[#495057] pb-3">Event</th>
                       <th className="text-left font-body text-sm text-[#495057] pb-3">Registration Date</th>
                       <th className="text-left font-body text-sm text-[#495057] pb-3">Contact</th>
-                      <th className="text-left font-body text-sm text-[#495057] pb-3">Status</th>
+                      <th className="text-left font-body text-sm text-[#495057] pb-3 px-2">Status</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -220,8 +223,8 @@ const OrganizerDashboard: React.FC = () => {
                         <td className="py-3 font-body text-[#495057] text-sm">{reg.event}</td>
                         <td className="py-3 font-body text-[#495057] text-sm">{reg.date}</td>
                         <td className="py-3 font-body text-[#495057] text-sm">{reg.contact}</td>
-                        <td className="py-3">
-                          <span className={`${getStatusColor(reg.status)} text-white text-xs px-2 py-1 rounded-full font-body`}>
+                        <td className="py-3 px-2">
+                          <span className={`${getStatusColor(reg.status)}  text-xs px-2 py-1 rounded-full font-body`}>
                             {reg.status}
                           </span>
                         </td>
@@ -245,7 +248,7 @@ const OrganizerDashboard: React.FC = () => {
                 <h2 className="font-heading text-xl font-semibold text-[#1B4332] mr-3">
                   Reviews
                 </h2>
-                <div className="flex items-center bg-[#1B4332] text-white px-3 py-1 rounded-full">
+                <div className="flex items-center bg-[#1E3A5F] text-white px-3 py-1 rounded-full">
                   <span className="font-heading font-semibold mr-1">{averageRating}</span>
                   <span>⭐</span>
                 </div>

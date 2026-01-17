@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { 
-  X, Check, XCircle, User, FileText, Clock, Download,
+  X, Check, XCircle, User, FileText, Clock, 
   Search, Filter, CheckCircle,
 } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ErrorMessageToast, SuccesfulMessageToast } from '../../../utils/Toastify.util';
-import { exportParticipantsToCSV, updateParticipantAttendance, type ParticipantsAttendanceDTO } from '../../../api/services/Participant';
+import { updateParticipantAttendance, type ParticipantsAttendanceDTO } from '../../../api/services/Participant';
 import type { EventParticipant, EventDetails } from '../../../types/eventTypes';
 
 interface ParticipantsPanelProps {
@@ -40,6 +40,40 @@ const ViewParticipantsSlider = ({
     }
   });
 
+  const canMarkAttendance = (eventStatus: string | undefined) => {
+  return eventStatus === 'COMPLETED' || eventStatus === 'INACTIVE';
+};
+
+// 2. Optional: Show a nice message when attendance is not allowed
+const AttendanceStatusMessage = () => {
+  if (!eventData?.status) return null;
+
+  if (canMarkAttendance(eventData.status)) {
+    return (
+      <div className="bg-green-50 border border-green-200 text-green-800 p-4 rounded-lg mb-6">
+        <div className="flex items-center gap-2">
+          <CheckCircle className="w-5 h-5" />
+          <span className="font-medium">Attendance marking is now available</span>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-lg mb-6">
+      <div className="flex items-center gap-2">
+        <Clock className="w-5 h-5" />
+        <div>
+          <p className="font-medium">Attendance marking is locked</p>
+          <p className="text-sm mt-1">
+            You can mark attendance only after the event is 
+            <strong> Completed</strong> or <strong>Inactive</strong>.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
   const handleAttendanceToggle = (participantId: number, currentStatus: EventParticipant['attendanceStatus']) => {
     const newStatus = currentStatus === 'PRESENT' ? 'ABSENT' : 'PRESENT';
     updateAttendanceMutation.mutate([{ participantId, attendanceStatus: newStatus }]);
@@ -54,20 +88,6 @@ const ViewParticipantsSlider = ({
     setSelectedParticipants([]);
   };
 
-  const handleExportCSV = async () => {
-    try {
-      const csvData = await exportParticipantsToCSV(Number(eventId));
-      const blob = new Blob([csvData], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `participants-event-${eventId}.csv`;
-      a.click();
-      SuccesfulMessageToast('Export completed successfully!');
-    } catch (error) {
-      ErrorMessageToast('Failed to export participants');
-    }
-  };
 
   // FIX: Access eventRegistration instead of registrations
   const filteredParticipants = eventData?.eventRegistration?.flatMap((reg) => 
@@ -189,7 +209,7 @@ const ViewParticipantsSlider = ({
         </div>
 
         {/* Bulk Actions */}
-        {selectedParticipants.length > 0 && (
+        {selectedParticipants.length > 0 && canMarkAttendance(eventData?.status) && (
           <div className="sticky top-[280px] bg-blue-50 border-y border-blue-200 p-4 z-10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -293,37 +313,39 @@ const ViewParticipantsSlider = ({
                         </div>
 
                         {/* Attendance Actions */}
-                        <div className="flex items-center gap-2 mt-3">
-                          <button
-                            onClick={() => handleAttendanceToggle(participant.id, participant.attendanceStatus)}
-                            className={`px-3 py-1.5 text-sm rounded-lg transition-colors flex items-center gap-1 ${
-                              participant.attendanceStatus === 'PRESENT'
-                                ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
-                          >
-                            <Check className="w-3 h-3" />
-                            Present
-                          </button>
-                          <button
-                            onClick={() => handleAttendanceToggle(participant.id, participant.attendanceStatus)}
-                            className={`px-3 py-1.5 text-sm rounded-lg transition-colors flex items-center gap-1 ${
-                              participant.attendanceStatus === 'ABSENT'
-                                ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
-                          >
-                            <XCircle className="w-3 h-3" />
-                            Absent
-                          </button>
-                          {/* <button
-                            onClick={() => handleSendAttendanceEmail(participant.id)}
-                            className="px-3 py-1.5 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-1"
-                          >
-                            <Send className="w-3 h-3" />
-                            Email
-                          </button> */}
-                        </div>
+                        {canMarkAttendance(eventData?.status) ? (
+                          <div className="flex items-center gap-2 mt-3">
+                            <button
+                              onClick={() => handleAttendanceToggle(participant.id, participant.attendanceStatus)}
+                              disabled={updateAttendanceMutation.isPending}
+                              className={`px-3 py-1.5 text-sm rounded-lg transition-colors flex items-center gap-1 min-w-[90px] justify-center ${
+                                participant.attendanceStatus === 'PRESENT'
+                                  ? 'bg-green-600 text-white hover:bg-green-700'
+                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              } disabled:opacity-50 disabled:cursor-not-allowed`}
+                            >
+                              <Check className="w-3 h-3" />
+                              Present
+                            </button>
+
+                            <button
+                              onClick={() => handleAttendanceToggle(participant.id, participant.attendanceStatus)}
+                              disabled={updateAttendanceMutation.isPending}
+                              className={`px-3 py-1.5 text-sm rounded-lg transition-colors flex items-center gap-1 min-w-[90px] justify-center ${
+                                participant.attendanceStatus === 'ABSENT'
+                                  ? 'bg-red-600 text-white hover:bg-red-700'
+                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              } disabled:opacity-50 disabled:cursor-not-allowed`}
+                            >
+                              <XCircle className="w-3 h-3" />
+                              Absent
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="mt-3 text-sm text-gray-500 italic">
+                            Attendance marking available after event completion / deactivation
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -340,13 +362,13 @@ const ViewParticipantsSlider = ({
               {filteredParticipants.length} participant{filteredParticipants.length !== 1 ? 's' : ''}
             </div>
             <div className="flex gap-3">
-              <button
+              {/* <button
                 onClick={handleExportCSV}
                 className="px-4 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#2a4a7a] transition-colors flex items-center gap-2"
               >
                 <Download className="w-4 h-4" />
                 Download PDF
-              </button>
+              </button> */}
             </div>
           </div>
         </div>

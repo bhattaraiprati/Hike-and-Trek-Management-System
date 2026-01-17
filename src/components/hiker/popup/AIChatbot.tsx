@@ -83,7 +83,7 @@ const AIChatbot = ({ config }: AIChatbotProps) => {
   };
 
   const handleEventClick = (eventId: number) => {
-    navigate(`/events/${eventId}`);
+    navigate(`/hiker-dashboard/event/${eventId}`);
     setIsOpen(false);
   };
 

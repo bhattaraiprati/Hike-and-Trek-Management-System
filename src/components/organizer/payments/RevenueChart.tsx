@@ -22,7 +22,7 @@ const RevenueChart = ({ data }: RevenueChartProps) => {
         <div className="flex items-center gap-4">
           <div className="text-right">
             <div className="text-sm text-gray-600">Total Revenue</div>
-            <div className="text-2xl font-bold text-green-600">${totalRevenue.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-green-600">NPR{totalRevenue.toLocaleString()}</div>
           </div>
         </div>
       </div>
@@ -46,7 +46,7 @@ const RevenueChart = ({ data }: RevenueChartProps) => {
                   />
                 </div>
                 <div className="mt-2 text-center">
-                  <div className="text-xs font-medium text-gray-900">${(month.revenue / 1000).toFixed(1)}k</div>
+                  <div className="text-xs font-medium text-gray-900">NPR{(month.revenue / 1000).toFixed(1)}k</div>
                   <div className="text-xs text-gray-500 mt-1">{month.month}</div>
                   <div className={`text-xs mt-1 ${month.growth > 0 ? 'text-green-600' : 'text-red-600'}`}>
                     {month.growth > 0 ? '+' : ''}{month.growth}%
@@ -67,7 +67,7 @@ const RevenueChart = ({ data }: RevenueChartProps) => {
           <div>
             <div className="text-sm text-gray-600">Avg. Revenue/Event</div>
             <div className="text-lg font-bold text-gray-900">
-              ${totalEvents > 0 ? (totalRevenue / totalEvents).toLocaleString() : '0'}
+              NPR{totalEvents > 0 ? (totalRevenue / totalEvents).toLocaleString() : '0'}
             </div>
           </div>
         </div>

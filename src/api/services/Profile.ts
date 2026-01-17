@@ -1,5 +1,6 @@
 import axios from "axios";
 import { urlLink } from "../axiosConfig";
+import type { FavouriteEvent, FavouritesPageResponse } from "../../types/Profile";
 
 export interface OrganizerProfile {
   id: number;
@@ -129,3 +130,62 @@ export const toggleFavorite = async (eventId: number) => {
   return response.data;
 };
 
+export const getRecentActivity = async () => {
+  const response = await axios.get(
+    `${urlLink}/hiker/dashboard/activity`,{
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`, 
+      },  
+
+    }
+  );
+  return response.data;
+};
+
+export const getFavoriteEvents = async (): Promise<FavouriteEvent[]> => {
+  const { data }: { data: FavouritesPageResponse } = await axios.get(
+    `${urlLink}/hiker/favourites?page=0&size=20`, // adjust size if needed
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`, 
+      },  
+
+    }
+  );
+  return data.favourites;
+};
+
+export const toggleFavourite = async (eventId: number): Promise<boolean> => {
+  try {
+    const { data } = await axios.post(
+      `${urlLink}/hiker/favourites/toggle/${eventId}`,
+      {}, // empty body
+      {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`, 
+      },  
+
+    }
+    );
+    
+    // Usually backend returns message that contains "added" or "removed"
+    const isNowFavourite = data.message?.toLowerCase().includes("added") ?? false;
+    return isNowFavourite;
+  } catch (error) {
+    console.error("Toggle favourite failed:", error);
+    throw error;
+  }
+};
+
+// Optional - more explicit remove
+export const removeFavourite = async (eventId: number) => {
+  await axios.delete(
+    `${urlLink}/hiker/favourites/${eventId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`, 
+      },  
+
+    }
+  );
+};

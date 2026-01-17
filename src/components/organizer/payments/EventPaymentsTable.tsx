@@ -129,14 +129,14 @@ const EventPaymentsTable = ({ events, onEventSelect, selectedEventId }: EventPay
                       <div className="flex items-center gap-2">
                         <DollarSign className="w-4 h-4 text-green-600" />
                         <span className="font-bold text-gray-900">
-                          ${event.totalRevenue.toLocaleString()}
+                          NPR{event.totalRevenue.toLocaleString()}
                         </span>
                       </div>
                       <div className="text-sm text-gray-500">
-                        Avg: ${event.averagePaymentPerPerson.toFixed(2)}/person
+                        Avg: NPR{event.averagePaymentPerPerson.toFixed(2)}/person
                       </div>
                       <div className="text-xs text-gray-400">
-                        Your share: ${event.organizerShare.toLocaleString()}
+                        Your share: NPR{event.organizerShare.toLocaleString()}
                       </div>
                     </div>
                   </td>
@@ -173,7 +173,7 @@ const EventPaymentsTable = ({ events, onEventSelect, selectedEventId }: EventPay
             <div className="text-right">
               <div className="text-sm text-gray-600">Total Revenue</div>
               <div className="text-lg font-bold text-green-600">
-                ${events.reduce((sum, event) => sum + event.totalRevenue, 0).toLocaleString()}
+                NPR{events.reduce((sum, event) => sum + event.totalRevenue, 0).toLocaleString()}
               </div>
             </div>
             <div className="text-right">

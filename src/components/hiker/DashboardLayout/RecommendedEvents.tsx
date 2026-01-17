@@ -38,11 +38,11 @@ const RecommendedEvents = ({ events, compact = false }: RecommendedEventsProps) 
   };
 
   const handleViewEvent = (eventId: number) => {
-    navigate(`/events/${eventId}`);
+    navigate(`/hiker-dashboard/event/${eventId}`);
   };
 
   const handleExploreAll = () => {
-    navigate('/events/explore');
+    navigate('/hiker-dashboard/explore');
   };
 
   if (events.length === 0) {
@@ -120,13 +120,7 @@ const RecommendedEvents = ({ events, compact = false }: RecommendedEventsProps) 
 
               {/* Rating and Participants */}
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                    <span className="font-medium text-gray-900">{event.rating}</span>
-                    <span className="text-gray-500">({event.totalRatings})</span>
-                  </div>
-                </div>
+                
                 <div className="flex items-center gap-1">
                   <Users className="w-4 h-4 text-gray-400" />
                   <span className="text-sm text-gray-600">
@@ -136,13 +130,14 @@ const RecommendedEvents = ({ events, compact = false }: RecommendedEventsProps) 
               </div>
 
               {/* Price and Duration */}
-              <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+              <div className="flex items-center justify-between pt-3 border-t border-gray-300">
                 <div>
                   <div className="text-2xl font-bold text-gray-900">
                     ${event.price}
                   </div>
                   <div className="text-xs text-gray-500">per person</div>
                 </div>
+                
                 <div className="text-right">
                   <div className="font-medium text-gray-900">{event.duration}</div>
                   <div className="text-xs text-gray-500">duration</div>
