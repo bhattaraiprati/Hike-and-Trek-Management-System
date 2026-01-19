@@ -1,9 +1,12 @@
-// HeroSection.tsx
-import { useState, useEffect, use } from 'react';
-import { Sparkles, Search, Calendar, Users, ChevronRight, Plus, MapPin, Mountain } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Sparkles, Search, Calendar, Users, ChevronRight, Plus, MapPin, Mountain, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import * as publicStatsApi from '../../api/services/publicStatsApi';
+import type { PlatformStatsDTO } from '../../types/publicStatsTypes';
 
 const HeroSection = () => {
+  const [stats, setStats] = useState<PlatformStatsDTO | null>(null);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -17,25 +20,36 @@ const HeroSection = () => {
   ];
 
   useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const data = await publicStatsApi.getPlatformStats();
+        setStats(data);
+      } catch (error) {
+        console.error("Failed to fetch hero stats", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
     const handleMouseMove = (e: MouseEvent) => {
       setMousePosition({
         x: (e.clientX / window.innerWidth) * 100,
         y: (e.clientY / window.innerHeight) * 100,
       });
     };
+
+    fetchStats();
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
   const handleStartExploring = () => {
     navigate('/login');
-    
   };
 
   const handleOrganizeEvents = () => {
     navigate('/signup');
   };
-
 
   return (
     <section className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#1E3A5F] via-[#2C5F8D] to-[#3A7CB8]">
@@ -88,9 +102,6 @@ const HeroSection = () => {
             Connect with hiking communities, discover epic trails, and manage your outdoor events—all in one place
           </p>
 
-          {/* Search Bar */}
-          
-
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
             <button
@@ -112,27 +123,41 @@ const HeroSection = () => {
 
           {/* Stats Preview */}
           <div className="mt-16 grid grid-cols-1 mb-10 md:grid-cols-3 gap-8 max-w-2xl mx-auto">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-white mb-2">500+</div>
-              <div className="text-gray-300 flex items-center justify-center gap-1">
-                <Mountain className="w-4 h-4" />
-                Trails Discovered
+            {loading ? (
+              <div className="col-span-3 flex justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-white/50" />
               </div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-white mb-2">10K+</div>
-              <div className="text-gray-300 flex items-center justify-center gap-1">
-                <Users className="w-4 h-4" />
-                Adventure Seekers
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-white mb-2">200+</div>
-              <div className="text-gray-300 flex items-center justify-center gap-1">
-                <Calendar className="w-4 h-4" />
-                Events Organized
-              </div>
-            </div>
+            ) : (
+              <>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-white mb-2">
+                    {stats?.totalTrails.toLocaleString() || "500"}+
+                  </div>
+                  <div className="text-gray-300 flex items-center justify-center gap-1">
+                    <Mountain className="w-4 h-4" />
+                    Trails Listed
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-white mb-2">
+                    {stats?.communityMembers.toLocaleString() || "10K"}+
+                  </div>
+                  <div className="text-gray-300 flex items-center justify-center gap-1">
+                    <Users className="w-4 h-4" />
+                    Community Members
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-white mb-2">
+                    {stats?.verifiedOrganizers.toLocaleString() || "200"}+
+                  </div>
+                  <div className="text-gray-300 flex items-center justify-center gap-1">
+                    <Calendar className="w-4 h-4" />
+                    Verified Organizers
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>

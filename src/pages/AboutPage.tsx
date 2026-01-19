@@ -1,11 +1,26 @@
-// AboutPage.tsx
-import { Target,  Heart,
-  CheckCircle,
-  ArrowRight
-} from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Target, Heart, CheckCircle, ArrowRight, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import * as publicStatsApi from '../api/services/publicStatsApi';
+import type { PlatformStatsDTO } from '../types/publicStatsTypes';
 
 const AboutPage = () => {
+  const [stats, setStats] = useState<PlatformStatsDTO | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const data = await publicStatsApi.getPlatformStats();
+        setStats(data);
+      } catch (error) {
+        console.error("Failed to fetch platform stats", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
       {/* Hero Section */}
@@ -75,18 +90,32 @@ const AboutPage = () => {
                 </div>
                 
                 <div className="mt-8 grid grid-cols-3 gap-4">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-[#1E3A5F]">500+</div>
-                    <div className="text-sm text-gray-600">Trails Listed</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-[#2C5F8D]">10K+</div>
-                    <div className="text-sm text-gray-600">Community Members</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-[#1E3A5F]">200+</div>
-                    <div className="text-sm text-gray-600">Verified Organizers</div>
-                  </div>
+                  {loading ? (
+                    <div className="col-span-3 flex justify-center py-4">
+                      <Loader2 className="w-8 h-8 animate-spin text-[#1E3A5F]" />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="text-center">
+                        <div className="text-3xl font-bold text-[#1E3A5F]">
+                          {stats?.totalTrails.toLocaleString() || "500"}+
+                        </div>
+                        <div className="text-sm text-gray-600">Trails Listed</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-3xl font-bold text-[#2C5F8D]">
+                          {stats?.communityMembers.toLocaleString() || "10K"}+
+                        </div>
+                        <div className="text-sm text-gray-600">Community Members</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-3xl font-bold text-[#1E3A5F]">
+                          {stats?.verifiedOrganizers.toLocaleString() || "200"}+
+                        </div>
+                        <div className="text-sm text-gray-600">Verified Organizers</div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
               

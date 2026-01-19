@@ -23,7 +23,7 @@ const AIChatbot = ({ config }: AIChatbotProps) => {
   const navigate = useNavigate();
 
   const defaultConfig: ChatConfig = {
-    welcomeMessage: "Hello! I'm your Trek Assistant. 🏔️ I can help you find hiking events, provide information about treks, answer your questions, and assist with bookings. How can I help you today?",
+    welcomeMessage: "Hello! I'm your Trek Assistant. 🏔️ I can help you find hiking events, provide information about hikes, answer your questions, and assist with bookings. How can I help you today?",
     placeholder: "Ask about hiking events, difficulty levels, pricing, or anything else...",
     suggestedQuestions: [
       "What hiking events are available this month?",
@@ -79,7 +79,7 @@ const AIChatbot = ({ config }: AIChatbotProps) => {
   };
 
   const formatPrice = (price: number) => {
-    return price === 0 ? 'Free' : `$${price}`;
+    return price === 0 ? 'Free' : `NPR ${price}`;
   };
 
   const handleEventClick = (eventId: number) => {
@@ -204,7 +204,7 @@ const AIChatbot = ({ config }: AIChatbotProps) => {
                       <Bot className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h2 className="font-bold text-white text-lg">Trek AI Assistant</h2>
+                      <h2 className="font-bold text-white text-lg">Hike AI Assistant</h2>
                       <p className="text-white/80 text-sm">Ask me anything about hiking!</p>
                     </div>
                   </div>

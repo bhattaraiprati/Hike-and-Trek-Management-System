@@ -7,10 +7,10 @@ import LogoName from '../common/logo/LogoName';
 const Footer = () => {
   const quickLinks = [
     { name: 'Features', href: '#' },
-    { name: 'About Us', href: '#' },
-    { name: 'Contact', href: '#' },
-    { name: 'Terms of Service', href: '#' },
-    { name: 'Privacy Policy', href: '#' },
+    { name: 'About Us', href: '/about' },
+    // { name: 'Contact', href: '#' },
+    // { name: 'Terms of Service', href: '#' },
+    // { name: 'Privacy Policy', href: '#' },
   ];
 
 
