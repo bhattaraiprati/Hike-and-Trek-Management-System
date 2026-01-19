@@ -50,7 +50,7 @@ export const AdminHeader: React.FC<HeaderProps> = ({ onMenuToggle }) => {
           {/* Right Section - Navigation Icons */}
           <div className="flex items-center space-x-4">
             
-            <NotificationDropdown />
+            {/* <NotificationDropdown /> */}
 
             {/* User Menu */}
             <div ref={userMenuRef} className="relative">

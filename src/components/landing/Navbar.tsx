@@ -13,7 +13,7 @@ const Navbar = () => {
     { id: 'features', label: 'Features', href: '#features' },
     { id: 'how-it-works', label: 'How It Works', href: '#how-it-works' },
     { id: 'about', label: 'About', href: '/about' },
-    { id: 'contact', label: 'Contact', href: '#contact' },
+    // { id: 'contact', label: 'Contact', href: '#contact' },
   ];
 
   // useEffect(() => {
