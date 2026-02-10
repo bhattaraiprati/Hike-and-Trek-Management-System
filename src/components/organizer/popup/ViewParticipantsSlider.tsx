@@ -45,34 +45,7 @@ const ViewParticipantsSlider = ({
 };
 
 // 2. Optional: Show a nice message when attendance is not allowed
-const AttendanceStatusMessage = () => {
-  if (!eventData?.status) return null;
 
-  if (canMarkAttendance(eventData.status)) {
-    return (
-      <div className="bg-green-50 border border-green-200 text-green-800 p-4 rounded-lg mb-6">
-        <div className="flex items-center gap-2">
-          <CheckCircle className="w-5 h-5" />
-          <span className="font-medium">Attendance marking is now available</span>
-        </div>
-      </div>
-    );
-  }
-  return (
-    <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-lg mb-6">
-      <div className="flex items-center gap-2">
-        <Clock className="w-5 h-5" />
-        <div>
-          <p className="font-medium">Attendance marking is locked</p>
-          <p className="text-sm mt-1">
-            You can mark attendance only after the event is 
-            <strong> Completed</strong> or <strong>Inactive</strong>.
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-};
 
   const handleAttendanceToggle = (participantId: number, currentStatus: EventParticipant['attendanceStatus']) => {
     const newStatus = currentStatus === 'PRESENT' ? 'ABSENT' : 'PRESENT';

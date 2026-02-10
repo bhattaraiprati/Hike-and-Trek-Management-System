@@ -9,7 +9,6 @@ import {
 } from "../api/services/authApi";
 import OTPVerificationPopup from "../components/auth/OTPVerificationPopup";
 import {
-  Zap,
   Loader2,
   Mail,
   X,
@@ -43,7 +42,6 @@ const LoginPage = () => {
     confirmPassword: "",
     name: "",
   });
-  const [rememberMe, setRememberMe] = useState(false);
 
   // Helper function to redirect based on role
   const redirectBasedOnRole = (token: string) => {

@@ -1,5 +1,5 @@
 // components/hiker/dashboard/WelcomeBanner.tsx
-import { User, Award, TrendingUp, Map } from 'lucide-react';
+import { User, Award, TrendingUp } from 'lucide-react';
 import type { UserInfo } from '../../../types/HikerTypes';
 import { useAuth } from '../../../context/AuthContext';
 import { useQuery } from '@tanstack/react-query';

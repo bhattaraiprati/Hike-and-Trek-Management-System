@@ -7,7 +7,6 @@ import StatsCards from '../../components/hiker/DashboardLayout/StatsCards';
 import UpcomingAdventures from '../../components/hiker/DashboardLayout/UpcomingAdventures';
 import RecommendedEvents from '../../components/hiker/DashboardLayout/RecommendedEvents';
 import RecentActivityFeed from '../../components/hiker/DashboardLayout/RecentActivityFeed';
-import QuickActionCards from '../../components/hiker/DashboardLayout/QuickActionCards';
 import { fetchHikerDashboard } from '../../api/services/HikerDashborard';
 
 const DashboardPage = () => {

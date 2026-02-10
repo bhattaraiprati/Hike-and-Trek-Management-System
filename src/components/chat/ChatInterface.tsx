@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Menu, X } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
 import type { ChatRoom } from '../../types/chatTypes';
 import { fetchChatMessages, fetchChatRooms } from '../../api/services/chatApi';
 import { useChatWebSocket } from '../../hooks/useChatWebSocket';
@@ -10,7 +9,6 @@ import ChatRoomView from './ChatRoomView';
 import ChatSidebar from './ChatSidebar';
 
 const ChatInterface = () => {
-  const { user } = useAuth();
   const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const queryClient = useQueryClient();

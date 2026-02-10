@@ -1,4 +1,3 @@
-import type { Page } from './adminUserTypes';
 
 export type EventStatus = 'PUBLISHED' | 'DRAFT' | 'CANCELLED' | 'COMPLETED' | 'ALL';
 

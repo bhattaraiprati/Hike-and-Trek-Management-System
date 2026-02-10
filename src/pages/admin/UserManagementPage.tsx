@@ -4,7 +4,7 @@ import {
   Users, Search, MoreVertical,
   Mail, Phone, User, Shield, Calendar,
   CheckCircle, AlertCircle,
-  /* Lock, */ Unlock, Eye, Download,
+  /* Lock, */ Unlock, Eye,
    Ban,
   Star, DollarSign, ChevronLeft, ChevronRight, Loader
 } from 'lucide-react';

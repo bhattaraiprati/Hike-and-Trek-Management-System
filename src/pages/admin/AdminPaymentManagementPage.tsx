@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import {
   DollarSign, CheckCircle, Clock, AlertCircle,
-  Search, Download, TrendingUp,
+  Search, TrendingUp,
   Building,
   ArrowRight, RefreshCw, BarChart3, CreditCard, User, MapPin, Percent,
   ChevronLeft, ChevronRight, Loader
@@ -143,19 +143,6 @@ const AdminPaymentManagementPage = () => {
         }
     };
 
-    // Get payment method badge
-    const getMethodBadge = (method: string) => {
-        switch (method) {
-            case 'ESEWA':
-                return { bg: 'bg-orange-100', text: 'text-orange-800', label: 'eSewa' };
-            case 'STRIPE':
-                return { bg: 'bg-purple-100', text: 'text-purple-800', label: 'Stripe' };
-            case 'CARD':
-                return { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Card' };
-            default:
-                return { bg: 'bg-gray-100', text: 'text-gray-800', label: method };
-        }
-    };
 
     // Format date
     const formatDate = (dateString?: string) => {

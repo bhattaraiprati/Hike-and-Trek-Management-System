@@ -2,8 +2,6 @@
 import { useState } from 'react';
 import { 
   DollarSign, TrendingUp,  Users, 
-  CreditCard, Download, RefreshCw,
-  FileText,
   Calendar
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -63,7 +61,7 @@ const PaymentManagementPage = () => {
   // TODO: Replace with actual organizerId from auth context, user profile, or route params
   const organizerId = Number(user?.id); // Placeholder; integrate with your authentication system
 
-  const { data: paymentData, isLoading, refetch } = useQuery({
+  const { data: paymentData, isLoading} = useQuery({
     queryKey: ['organizerPayments', filters, organizerId],
     queryFn: () => fetchPaymentDashboard(filters, organizerId),
     staleTime: 5 * 60 * 1000,
@@ -78,11 +76,6 @@ const PaymentManagementPage = () => {
     if (eventId) {
       setActiveTab('participants');
     }
-  };
-
-  const handleExportPayments = () => {
-    // Export functionality (can be enhanced to call a backend export API if needed)
-    alert('Exporting payment data...');
   };
 
   if (isLoading) {

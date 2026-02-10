@@ -81,9 +81,6 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     return localStorage.getItem("token");
   });
 
-  const [refreshToken, setRefreshToken] = useState<string | null>(() => {
-    return localStorage.getItem("refreshToken");
-  });
 
   const [user, setUser] = useState<User | null>(() => {
     const token = localStorage.getItem("token");
@@ -120,7 +117,6 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       
       // Update tokens
       setAuthToken(data.token);
-      setRefreshToken(data.refreshToken);
       localStorage.setItem("token", data.token);
       localStorage.setItem("refreshToken", data.refreshToken);
       

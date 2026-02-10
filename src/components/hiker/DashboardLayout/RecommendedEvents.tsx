@@ -1,5 +1,5 @@
 // components/hiker/dashboard/RecommendedEvents.tsx
-import { Star, MapPin, Users, Calendar, TrendingUp, ChevronRight } from 'lucide-react';
+import { MapPin, Users, Calendar, TrendingUp, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { RecommendedEvent } from '../../../types/HikerTypes';
 
