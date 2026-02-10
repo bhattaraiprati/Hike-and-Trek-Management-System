@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Calendar, MapPin,
   Edit, Eye, Send, Star,
-  CheckCircle, AlertCircle, Download, ArrowLeft,
+  CheckCircle, AlertCircle,  ArrowLeft,
   ShieldOff, ShieldCheck, MessageCircleMore,
   FileText, Flag, CheckSquare, XSquare, Clock,
   Trash2
@@ -90,7 +90,7 @@ const OrganizerEventDetailsPage = () => {
     }
   };
 
-  const handleChatCreated = (chatRoomId: number) => {
+  const handleChatCreated = () => {
     navigate(`/dashboard/messages`);
   };
 
@@ -148,16 +148,6 @@ const OrganizerEventDetailsPage = () => {
     }
   };
 
-  const getStatusDescription = (status: string) => {
-    switch (status) {
-      case 'DRAFT': return 'Event is in draft mode. Not visible to participants.';
-      case 'ACTIVE': return 'Event is live and accepting registrations.';
-      case 'INACTIVE': return 'Event is temporarily unavailable.';
-      case 'COMPLETED': return 'Event has finished successfully.';
-      case 'CANCELLED': return 'Event has been cancelled.';
-      default: return '';
-    }
-  };
 
   const getAvailableStatusTransitions = (currentStatus: string) => {
     const transitions: Record<string, { status: string; label: string; icon: React.ReactNode; color: string }[]> = {
@@ -212,9 +202,6 @@ const OrganizerEventDetailsPage = () => {
     setShowBulkEmailModal(true);
   };
 
-  const handleExportData = () => {
-    alert('Event data exported successfully!');
-  };
 
   if (isLoading) {
     return (

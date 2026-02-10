@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Sparkles, Search, Calendar, Users, ChevronRight, Plus, MapPin, Mountain, Loader2 } from 'lucide-react';
+import { Calendar, Users, ChevronRight, Plus, Mountain, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import * as publicStatsApi from '../../api/services/publicStatsApi';
 import type { PlatformStatsDTO } from '../../types/publicStatsTypes';
@@ -7,17 +7,10 @@ import type { PlatformStatsDTO } from '../../types/publicStatsTypes';
 const HeroSection = () => {
   const [stats, setStats] = useState<PlatformStatsDTO | null>(null);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const navigate = useNavigate();
 
-  const searchSuggestions = [
-    { id: '1', text: 'Everest Base Camp Trek', type: 'trail' },
-    { id: '2', text: 'Annapurna Circuit', type: 'trail' },
-    { id: '3', text: 'Langtang Valley Trek', type: 'trail' },
-    { id: '4', text: 'Weekend Hiking Group', type: 'event' },
-  ];
+
 
   useEffect(() => {
     const fetchStats = async () => {

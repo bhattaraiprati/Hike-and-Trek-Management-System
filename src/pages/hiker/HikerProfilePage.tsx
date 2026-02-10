@@ -108,7 +108,7 @@ const HikerProfilePage = () => {
     const [showReviewModal, setShowReviewModal] = useState(false);
     const [selectedReview, setSelectedReview] = useState<Review | null>(null);
     const [selectedPendingReview, setSelectedPendingReview] = useState<PendingReview | null>(null);
-    const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+    const isSubmittingReview = false;
     const [showAllPending, setShowAllPending] = useState(false);
     const [showAllReviews, setShowAllReviews] = useState(false);
 

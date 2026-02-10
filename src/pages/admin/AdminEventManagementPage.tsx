@@ -4,7 +4,7 @@ import {
   Eye, MoreVertical,
   CheckCircle,  XCircle, Clock,
   ChevronLeft, ChevronRight, Loader,
-  Download, TrendingUp,  RotateCcw
+   TrendingUp,  RotateCcw
 } from 'lucide-react';
 import type { AdminEventDTO, EventStatus, EventStatsDTO, EventParticipantDTO } from '../../types/adminEventTypes';
 import * as adminEventApi from '../../api/services/adminEventApi';

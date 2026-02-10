@@ -2,11 +2,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, X  } from 'lucide-react';
-import LogoName from '../common/logo/LogoName';
+// import { Link } from "react-router-dom";
+import LogoName from "@/components/common/logo/LogoName";
+
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const [isScrolled, setIsScrolled] = useState(100);
+  const isScrolled = 100;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [

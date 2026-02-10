@@ -6,7 +6,7 @@ import {
     TrendingUp, BarChart3, Search, Eye, FileText, ArrowUpDown, 
     Percent, Award, User
 } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line, LineChart } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer} from 'recharts';
 import { jwtDecode } from 'jwt-decode';
 import * as organizerPaymentApi from '../../api/services/organizerPaymentApi';
 import type { 

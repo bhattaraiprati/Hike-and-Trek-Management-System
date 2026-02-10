@@ -2,9 +2,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { 
   User, Mail, Phone, MapPin, Calendar, 
-  Edit, Save, X, Camera, Award,
+  Edit, Save, X, Camera, 
   Briefcase, Globe, Link as LinkIcon, Shield,
-  FileText, BarChart,  TrendingUp,
+  FileText, BarChart,  
   CheckCircle, AlertCircle, Clock
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -23,7 +23,6 @@ const OrganizerProfilePage = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bannerFileInputRef = useRef<HTMLInputElement>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [editMode, setEditMode] = useState<"profile" | "password" | null>(null);
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [bannerImage, setBannerImage] = useState<File | null>(null);
   const [profileData, setProfileData] = useState<OrganizerProfile | null>(null);
@@ -66,7 +65,6 @@ const OrganizerProfilePage = () => {
       SuccesfulMessageToast('Profile updated successfully!');
       queryClient.invalidateQueries({ queryKey: ['organizerProfile', user?.id] });
       setIsEditing(false);
-      setEditMode(null);
     },
     onError: () => {
       ErrorMessageToast('Failed to update profile');
@@ -340,7 +338,6 @@ const OrganizerProfilePage = () => {
                     <button
                       onClick={() => {
                         setIsEditing(false);
-                        setEditMode(null);
                         setProfileData(organizerProfile || null);
                         setProfileImage(null);
                         setBannerImage(null);

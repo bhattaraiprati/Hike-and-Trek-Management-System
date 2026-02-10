@@ -4,7 +4,7 @@ import {
   CheckCircle, XCircle, Eye, FileText, 
   Calendar, User, Building, MapPin, 
   Phone, Clock, Shield, 
-  AlertCircle, Search, Download, Loader2
+  AlertCircle, Search, Loader2
 } from 'lucide-react';
 import {
   getOrganizers,
