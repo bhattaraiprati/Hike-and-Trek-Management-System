@@ -1,3 +1,3 @@
 
 
-export const urlLink = 'http://localhost:8080/api'
+export const urlLink = 'https://treksathi-backend.onrender.com/api'
